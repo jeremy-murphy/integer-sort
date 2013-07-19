@@ -1,25 +1,33 @@
 #include <iterator>
 #include <algorithm>
 #include <cassert>
+#include <limits>
+
+#include <boost/static_assert.hpp>
 
 /**
  * Requires that client allocates space for result beforehand.
  */
 
 template <typename ForwardIterator, typename ReverseIterator, typename OutputIterator>
-void stable_counting_sort(ForwardIterator __first, ForwardIterator __last, ReverseIterator __rfirst, ReverseIterator __rlast, OutputIterator __result, typename std::iterator_traits<ForwardIterator>::value_type const __k = 9, typename std::iterator_traits<ForwardIterator>::value_type __min = 0)
+void stable_counting_sort(ForwardIterator __first, ForwardIterator __last, 
+                          ReverseIterator __rfirst, ReverseIterator __rlast, OutputIterator __result, 
+                          typename std::iterator_traits<ForwardIterator>::value_type const __k = 15, 
+                          typename std::iterator_traits<ForwardIterator>::value_type const bitmask = std::numeric_limits<typename std::iterator_traits<ForwardIterator>::value_type>::max())
 {
     // TODO: Statically check the iterators for type sanity.
+    typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
+    BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
+
     assert(__first != __last);
     assert(__rfirst != __rlast);
-    typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
     
     std::vector<value_type> C(__k + 1);
-    std::for_each(__first, __last, [&](value_type const e){ ++C[e]; });
+    std::for_each(__first, __last, [&](value_type const e){ ++C[e & bitmask]; });
     std::transform(std::begin(C) + 1, std::end(C), std::begin(C), std::begin(C) + 1, [](value_type const input1, value_type const input2){ return input1 + input2; });
     std::for_each(__rfirst, __rlast, [&](value_type const e)
     {
-        *(__result + --C[e]) = e;
+        *(__result + --C[e & bitmask]) = e;
     });
 }
 

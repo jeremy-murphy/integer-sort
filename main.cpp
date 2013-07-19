@@ -10,31 +10,26 @@
 
 using namespace std;
 
-typedef unsigned long T;
-
-// #define STRINGS
+typedef unsigned short T;
 
 int main(void)
 {
-#ifndef STRINGS
-    T const k = 5, __min = 0;
+    T const k = 15, __min = 0;
     unsigned const n = 10000000;
     cout << "k = " << k << ", n = " << n << endl;
     mt19937 engine;
     uniform_int_distribution<T> dist(__min, k);
     auto generator = bind(dist, engine);
-    vector<T> A;
+    vector<T> A = { 11, 12, 5, 8, 3, 2, 0, 3, 6, 8, 13, 3, 3, 6, 5, 0 };
+    /*
     A.reserve(n);
     for(unsigned i = 0; i < n; ++i)
         A.push_back(generator());
+    */
     vector<T> B(A.size());
-#else
-    string A("something wicked this way comes");
-    char const __min(*min_element(A.begin(), A.end())), k(*max_element(A.begin(), A.end()));
-    cout << "Before: " << A << endl;
-#endif
+
     auto const t0(std::chrono::high_resolution_clock::now());
-    stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), begin(B), k);
+    stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), begin(B), k, 0x03);
     // counting_sort(A.begin(), A.end(), k, __min);
     // sort(begin(A), end(A));
     auto const t1(std::chrono::high_resolution_clock::now());
