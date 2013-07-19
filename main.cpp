@@ -21,20 +21,21 @@ int main(void)
     unsigned const n = 10000000;
     cout << "k = " << k << ", n = " << n << endl;
     mt19937 engine;
-    uniform_int_distribution<T> dist(0, k);
+    uniform_int_distribution<T> dist(__min, k);
     auto generator = bind(dist, engine);
     vector<T> A;
     A.reserve(n);
     for(unsigned i = 0; i < n; ++i)
         A.push_back(generator());
+    vector<T> B(A.size());
 #else
     string A("something wicked this way comes");
     char const __min(*min_element(A.begin(), A.end())), k(*max_element(A.begin(), A.end()));
     cout << "Before: " << A << endl;
 #endif
     auto const t0(std::chrono::high_resolution_clock::now());
-    // counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), begin(B), k);
-    fastcsort(A.begin(), A.end(), k, __min);
+    stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), begin(B), k);
+    // counting_sort(A.begin(), A.end(), k, __min);
     // sort(begin(A), end(A));
     auto const t1(std::chrono::high_resolution_clock::now());
     auto elapsed(chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());

@@ -2,10 +2,58 @@
 #include <algorithm>
 #include <cassert>
 
+/**
+ * Requires that client allocates space for result beforehand.
+ */
+
+template <typename ForwardIterator, typename ReverseIterator, typename OutputIterator>
+void stable_counting_sort(ForwardIterator __first, ForwardIterator __last, ReverseIterator __rfirst, ReverseIterator __rlast, OutputIterator __result, typename std::iterator_traits<ForwardIterator>::value_type const __k = 9, typename std::iterator_traits<ForwardIterator>::value_type __min = 0)
+{
+    // TODO: Statically check the iterators for type sanity.
+    assert(__first != __last);
+    assert(__rfirst != __rlast);
+    typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
+    
+    std::vector<value_type> C(__k + 1);
+    std::for_each(__first, __last, [&](value_type const e){ ++C[e]; });
+    std::transform(std::begin(C) + 1, std::end(C), std::begin(C), std::begin(C) + 1, [](value_type const input1, value_type const input2){ return input1 + input2; });
+    std::for_each(__rfirst, __rlast, [&](value_type const e)
+    {
+        *(__result + --C[e]) = e;
+    });
+}
+
+
+#include <cstring>
+#include <climits>
+
+
+template <typename T>
+void counting_sort( T* const arr, std::size_t const len, T const __max, T const __min = 0 )
+{
+    T z = 0;
+    T nlen = ( __max - __min ) + 1;
+    T temp[nlen];
+    memset( temp, 0, nlen * sizeof( T ) );
+    
+    for( std::size_t i = 0; i < len; i++ )
+        temp[arr[i] - __min]++;
+    
+    for( T i = __min; i <= __max; i++ )
+        while( temp[i - __min] )
+        {
+            arr[z++] = i;
+            temp[i - __min]--;
+        }
+}
+
+/**
+ * In-place but not stable.
+ */
 template <typename InputIterator>
-void fastcsort( InputIterator __first, InputIterator __last,
+void counting_sort( InputIterator __first, InputIterator __last,
                 typename std::iterator_traits<InputIterator>::value_type const __max,
-                typename std::iterator_traits<InputIterator>::value_type const __min = 0)
+                typename std::iterator_traits<InputIterator>::value_type const __min = 0) 
 {
     typedef typename std::iterator_traits<InputIterator>::value_type value_type;
     
@@ -22,29 +70,5 @@ void fastcsort( InputIterator __first, InputIterator __last,
         while( temp[i - __min]-- )
         {
             *(it++) = i;
-        }
-}
-
-
-#include <cstring>
-#include <climits>
-
-
-template <typename T>
-void fastcsort( T* const arr, std::size_t const len, T const __max, T const __min = 0 )
-{
-    T z = 0;
-    T nlen = ( __max - __min ) + 1;
-    T temp[nlen];
-    memset( temp, 0, nlen * sizeof( T ) );
-    
-    for( std::size_t i = 0; i < len; i++ )
-        temp[arr[i] - __min]++;
-    
-    for( T i = __min; i <= __max; i++ )
-        while( temp[i - __min] )
-        {
-            arr[z++] = i;
-            temp[i - __min]--;
         }
 }
