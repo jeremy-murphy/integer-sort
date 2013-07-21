@@ -1,4 +1,9 @@
+#include "boost/algorithm/sorting/integer_sort.hpp"
+
 #include "counting-sort.hpp"
+#include "radix-sort.hpp"
+
+#include <boost/lexical_cast.hpp>
 
 #include <iostream>
 #include <vector>
@@ -9,33 +14,56 @@
 #include <string>
 
 using namespace std;
+using namespace boost;
 
-typedef unsigned short T;
+typedef unsigned char T;
 
-int main(void)
+int main(int argc, char **argv)
 {
-    T const k = 15, __min = 0;
-    unsigned const n = 10000000;
+    unsigned const n = lexical_cast<unsigned>(argv[1]);
+    T const k = lexical_cast<T>(argv[2]), __min = 32;
     cout << "k = " << k << ", n = " << n << endl;
     mt19937 engine;
     uniform_int_distribution<T> dist(__min, k);
     auto generator = bind(dist, engine);
-    vector<T> A = { 11, 12, 5, 8, 3, 2, 0, 3, 6, 8, 13, 3, 3, 6, 5, 0 };
-    /*
+    vector<T> A;
     A.reserve(n);
     for(unsigned i = 0; i < n; ++i)
         A.push_back(generator());
-    */
     vector<T> B(A.size());
 
     auto const t0(std::chrono::high_resolution_clock::now());
-    stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), begin(B), k, 0x03);
-    // counting_sort(A.begin(), A.end(), k, __min);
-    // sort(begin(A), end(A));
+    stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), B.begin(), k);
+    // integer_sort(A.begin(), A.end());
+    // counting_sort(A.begin(), A.end(), k);
+    // sort(A.begin(), A.end());
     auto const t1(std::chrono::high_resolution_clock::now());
     auto elapsed(chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
     // cout << " After: " << A << endl;
     cout << "Elapsed time: " << elapsed << " ms.\n";
+    
+#ifndef NDEBUG
+    // Test stable_counting_sort().
+    cout << "Testing ... ";
+    cout.flush();
+    vector<T> X(A);
+    sort(X.begin(), X.end());
+    if(X == B)
+        cout << "[OK]" << endl;
+    else
+    {
+        cout << "[FAILED]" << endl;
+    }
+        cout << "==== A ====" << endl;
+        for_each(std::begin(A), std::end(A), [](T const &__e){ cout << __e; });
+        cout << endl << "==== B ====" << endl;
+        for_each(std::begin(B), std::end(B), [](T const &__e){ cout << __e; });
+        cout << endl << "==== X ====" << endl;
+        for_each(std::begin(X), std::end(X), [](T const &__e){ cout << __e; });
+        cout << endl;
+#endif
+    
+    radix_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), B.begin());
     
     return 0;
 }
