@@ -8,12 +8,12 @@
 
 #include <boost/static_assert.hpp>
 
-/**
- * Requires that client allocates space for result beforehand.
- */
 
 namespace boost
 {
+    /**
+    * Requires that client allocates space for result beforehand.
+    */
     template <typename ForwardIterator, typename ReverseIterator, typename OutputIterator>
     void stable_counting_sort(ForwardIterator __first, ForwardIterator __last, 
                             ReverseIterator __rfirst, ReverseIterator __rlast, OutputIterator __result, 
@@ -22,6 +22,7 @@ namespace boost
     {
         // TODO: Statically check the iterators for type sanity.
         typedef typename std::iterator_traits<ForwardIterator>::value_type value_type;
+        BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
         BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
 
         assert(__first != __last);
@@ -32,7 +33,7 @@ namespace boost
         std::vector<uintmax_t> __C(__k + 1); // NOTE: Could be a std::dynarray in C++14?
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
         std::for_each(__first, __last, [&](value_type const __e){ ++__C[__e & __bitmask]; });
-        std::transform(std::begin(__C) + 1, std::end(__C), std::begin(__C), std::begin(__C) + 1, [](uintmax_t const __input1, uintmax_t const __input2){ return __input1 + __input2; });
+        std::transform(std::begin(__C) + 1, std::end(__C), std::begin(__C), std::begin(__C) + 1, [](uintmax_t const &__input1, uintmax_t const &__input2){ return __input1 + __input2; });
         std::for_each(__rfirst, __rlast, [&](value_type const __e)
         {
             *(__result + --__C[__e & __bitmask]) = __e;
@@ -72,6 +73,9 @@ namespace boost
     template <typename T>
     void counting_sort( T* const arr, std::size_t const len, T const __max, T const __min = 0 )
     {
+        BOOST_STATIC_ASSERT(std::numeric_limits<T>::is_integer);
+        BOOST_STATIC_ASSERT(!std::numeric_limits<T>::is_signed);
+
         unsigned long z = 0;
         unsigned long nlen = ( __max - __min ) + 1;
         unsigned long temp[nlen];
@@ -96,6 +100,9 @@ namespace boost
     {
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
         
+        BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
+        BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
+        
         assert(__first != __last);
         assert(__max > __min);
         
@@ -104,11 +111,17 @@ namespace boost
         uintmax_t temp[nlen];
         std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
-        std::for_each(__first, __last, [&](value_type const e){ assert(__min <= e && e <= __max); temp[e - __min]++; });
+        std::for_each(__first, __last, [&](value_type const e)
+        {
+            assert(__min <= e);
+            assert(e <= __max);
+            temp[e - __min]++;
+        });
 #else
         for(InputIterator __it(__first); __it != __last; __it++)
         {
-            assert(__min <= *__it && *__it <= __max);
+            assert(__min <= *__it);
+            assert(*__it <= __max);
             temp[*__it - __min]++;
         }
 #endif
