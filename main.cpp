@@ -3,6 +3,7 @@
 //  Boost Software License, Version 1.0. (See accompanying file 
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #include "boost/algorithm/sorting/integer_sort.hpp"
+#include "boost/algorithm/sorting/string_sort.hpp"
 
 #include "counting-sort.hpp"
 #include "radix-sort.hpp"
@@ -20,7 +21,7 @@
 using namespace std;
 using namespace boost;
 
-typedef unsigned char T;
+typedef unsigned T;
 
 int main(int argc, char **argv)
 {
@@ -38,8 +39,9 @@ int main(int argc, char **argv)
     vector<T> B(A);
     cout << "Sorting..." << endl;
     auto const t0(std::chrono::high_resolution_clock::now());
-    // stable_counting_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), B.begin(), k);
-    integer_sort(B.begin(), B.end());
+    stable_counting_sort(A.cbegin(), A.cend(), B.begin(), k);
+    // radix_sort(A.cbegin(), A.cend(), B.begin(), k);
+    // integer_sort(B.begin(), B.end());
     // counting_sort(B.begin(), B.end(), k);
     // sort(A.begin(), A.end());
     auto const t1(std::chrono::high_resolution_clock::now());
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
     cout << endl;
 #endif
     
-    radix_sort(A.cbegin(), A.cend(), A.crbegin(), A.crend(), B.begin());
+    radix_sort(A.cbegin(), A.cend(), B.begin(), k);
     
     return 0;
 }

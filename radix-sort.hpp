@@ -24,7 +24,7 @@ namespace boost
             unsigned r = 8;
             for(unsigned __i = 4; __i < 8; __i++)
             {
-                unsigned const __s(pow(2, __i));
+                unsigned const __s(1 << __i);
                 if(__s <= b && __s <= flgn)
                     r = __s;
                 else
@@ -35,8 +35,8 @@ namespace boost
         }
     }
     
-    template <typename InputIterator, typename ReverseIterator, typename OutputIterator>
-    void radix_sort(InputIterator __first, InputIterator __last, ReverseIterator __rfirst, ReverseIterator __rlast, OutputIterator __result, unsigned const __radix = 0)
+    template <typename InputIterator, typename OutputIterator>
+    void radix_sort(InputIterator __first, InputIterator __last, OutputIterator __result, typename std::iterator_traits<InputIterator>::value_type const k, unsigned const __radix = 0)
     {
         typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
@@ -53,14 +53,29 @@ namespace boost
 #endif
         unsigned const d(ceil(b / r));
 
+        assert(d % 2 == 0);
+        
 #ifndef NDEBUG
         std::cout << "n = " << n << ", " << "b = " << b << ", " << "⌊lg(n)⌋ = " << flgn << ", r = " << r << ", d = " << d << std::endl;
 #endif
         
-        for(unsigned i = 0; i < d; i++)
+        std::vector<value_type> __input(__first, __last), __output(n);
+        
+        for(unsigned __i = 0; __i < d; __i++)
         {
+            unsigned __bitmask = (1 << r) - 1;
+            __bitmask <<= __i * r;
+            boost::stable_counting_sort(__input.begin(), __input.end(), __output.begin(), k, __bitmask);
             
+            std::swap(__input, __output);
         }
+        
+        // Swap is always called an even number of times, so __input is the result.
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+        std::move(__input.begin(), __input.end(), __result);
+#else
+        std::copy(__input.begin(), __input.end(), __result);
+#endif
     }
 }
 #endif
