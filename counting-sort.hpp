@@ -15,6 +15,16 @@
 
 namespace boost
 {
+    namespace detail
+    {
+        class sum_inputs
+        {
+        public:
+            template <typename T>
+            T operator()(T const &input1, T const &input2) const { return input1 + input2; }
+        };
+    }
+    
     /**
     * Requires that client allocates space for result beforehand.
     */
@@ -25,6 +35,7 @@ namespace boost
     {
         // TODO: Statically check the iterators for type sanity.
         typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
+        typedef std::reverse_iterator<BidirectionalIterator> ReverseIterator;
         BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
         BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
 
@@ -32,34 +43,19 @@ namespace boost
         {
             // Really, k = 2^(width of 1s in bitmask)
             std::vector<uintmax_t> __C(__k + 1); // NOTE: Could be a std::dynarray in C++14?
-            std::reverse_iterator<BidirectionalIterator> __rfirst(__last), __rlast(__first);
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-            std::for_each(__first, __last, [&](value_type const __e){ ++__C[__e & __bitmask]; });
-            std::transform(std::begin(__C) + 1, std::end(__C), std::begin(__C), std::begin(__C) + 1, [](uintmax_t const &__input1, uintmax_t const &__input2){ return __input1 + __input2; });
-            std::for_each(__rfirst, __rlast, [&](value_type const __e)
+            ReverseIterator __rfirst(__last), __rlast(__first);
+
+            for(BidirectionalIterator __it(__first); __it != __last; __it++)
             {
-                *(__result + --__C[__e & __bitmask]) = __e;
-            });
-#else
-            class sum_inputs
-            {
-            public:
-                value_type operator()(value_type const &input1, value_type const &input2) const { return input1 + input2; }
-            };
-            
-            
-            for(ForwardIterator __it(__first); __it != __last; __it++)
-            {
-                __C[__e & __bitmask]++;
+                __C[*__it & __bitmask]++;
             }
             
-            std::transform(__C.begin() + 1, __C.end(), __C.begin(), __C.begin() + 1, sum_inputs());
+            std::transform(__C.begin() + 1, __C.end(), __C.begin(), __C.begin() + 1, detail::sum_inputs());
 
             for(ReverseIterator __it(__rfirst); __it != __rlast; __it++)
             {
-                *(__result + --__C[__e & __bitmask]) = __e;
+                *(__result + --__C[*__it & __bitmask]) = *__it;
             }
-#endif
         }
     }
 
@@ -84,21 +80,12 @@ namespace boost
             assert(nlen != 0);
             uintmax_t temp[nlen];
             std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-            std::for_each(__first, __last, [&](value_type const e)
-            {
-                assert(__min <= e);
-                assert(e <= __max);
-                temp[e - __min]++;
-            });
-#else
             for(InputIterator __it(__first); __it != __last; __it++)
             {
                 assert(__min <= *__it);
                 assert(*__it <= __max);
                 temp[*__it - __min]++;
             }
-#endif
             InputIterator it(__first);
             for( value_type i = __min; i <= __max; i++ )
                 while( temp[i - __min]-- )

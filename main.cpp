@@ -12,11 +12,10 @@
 
 #include <iostream>
 #include <vector>
-#include <random>
 #include <functional>
 #include <algorithm>
-#include <chrono>
 #include <string>
+#include <cstdlib>
 
 using namespace std;
 using namespace boost;
@@ -28,26 +27,26 @@ int main(int argc, char **argv)
     unsigned const n = lexical_cast<unsigned>(argv[1]);
     T const k = lexical_cast<T>(argv[2]), __min = 0;
     cout << "k = " << k << ", n = " << n << endl;
-    mt19937 engine;
-    uniform_int_distribution<T> dist(__min, k);
-    auto generator = bind(dist, engine);
+    // mt19937 engine;
+    // uniform_int_distribution<T> dist(__min, k);
+    // auto generator = bind(dist, engine);
     cout << "Creating data vectors..." << endl;
     vector<T> A;
     A.reserve(n);
     for(unsigned i = 0; i < n; ++i)
-        A.push_back(generator());
+        A.push_back(rand() % k);
     vector<T> B(A);
     cout << "Sorting..." << endl;
-    auto const t0(std::chrono::high_resolution_clock::now());
-    stable_counting_sort(A.cbegin(), A.cend(), B.begin(), k);
+    // auto const t0(std::chrono::high_resolution_clock::now());
+    stable_counting_sort(A.begin(), A.end(), B.begin(), k);
     // radix_sort(A.cbegin(), A.cend(), B.begin(), k);
     // integer_sort(B.begin(), B.end());
     // counting_sort(B.begin(), B.end(), k);
     // sort(A.begin(), A.end());
-    auto const t1(std::chrono::high_resolution_clock::now());
-    auto elapsed(chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
+    // auto const t1(std::chrono::high_resolution_clock::now());
+    // auto elapsed(chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
     // cout << " After: " << A << endl;
-    cout << "Elapsed time: " << elapsed << " ms.\n";
+    // cout << "Elapsed time: " << elapsed << " ms.\n";
     
     // Test stable_counting_sort().
     cout << "Testing ... ";
@@ -69,7 +68,7 @@ int main(int argc, char **argv)
     cout << endl;
 #endif
     
-    radix_sort(A.cbegin(), A.cend(), B.begin(), k);
+    radix_sort(A.begin(), A.end(), B.begin(), k);
     
     return 0;
 }
