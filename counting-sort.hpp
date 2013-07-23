@@ -27,11 +27,24 @@ namespace boost
     
     /**
     * Requires that client allocates space for result beforehand.
+    * 
+    * @brief Generalized stable counting-sort.
+    * 
+    * \c BidirectionalIterator Type of input iterator.
+    * \c OutputIterator Type of output iterator: only required to be forward.
+    * 
+    * \c _first Input iterator that points to the first element of the unsorted data.
+    * \c _last Input iterator that points past the last element of the unsorted data.
+    * \c _result Output iterator that points to the first element where the sorted data will go.
+    * \c _k The largest value present in the input >> _r * _d.
+    * \c _r The radix or width of digit to consider.
+    * \c _d Which digit to consider.
     */
     template <typename BidirectionalIterator, typename OutputIterator>
-    void stable_counting_sort(BidirectionalIterator __first, BidirectionalIterator __last, OutputIterator __result, 
-                            typename std::iterator_traits<BidirectionalIterator>::value_type const __k,
-                            typename std::iterator_traits<BidirectionalIterator>::value_type const __bitmask = std::numeric_limits<typename std::iterator_traits<BidirectionalIterator>::value_type>::max())
+    void stable_counting_sort(BidirectionalIterator _first, BidirectionalIterator _last, OutputIterator _result, 
+                            typename std::iterator_traits<BidirectionalIterator>::value_type const _k,
+                            unsigned const _r = sizeof(typename std::iterator_traits<BidirectionalIterator>::value_type) * 8,
+                            unsigned const _d = 0)
     {
         // TODO: Statically check the iterators for type sanity.
         typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
@@ -39,23 +52,23 @@ namespace boost
         BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
         BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
 
-        if(__first != __last)
+        if(_first != _last)
         {
-            // Really, k = 2^(width of 1s in bitmask)
-            std::vector<uintmax_t> __C(__k + 1); // NOTE: Could be a std::dynarray in C++14?
-            ReverseIterator __rfirst(__last), __rlast(__first);
+            assert(_r != 0);
+            assert(_k != std::numeric_limits<uintmax_t>::max()); // Because otherwise _k + 1 == 0.
+            unsigned const _shift = _r * _d;
+            uintmax_t const _bitmask = (1ul << _r) - 1;
+            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k) + 1); // NOTE: Could be a std::dynarray in C++14?
+            ReverseIterator _rfirst(_last);
+            ReverseIterator const _rlast(_first);
 
-            for(BidirectionalIterator __it(__first); __it != __last; __it++)
-            {
-                __C[*__it & __bitmask]++;
-            }
-            
-            std::transform(__C.begin() + 1, __C.end(), __C.begin(), __C.begin() + 1, detail::sum_inputs());
+            for(; _first != _last; _first++)
+                _C[(*_first >> _shift & _bitmask)]++;
 
-            for(ReverseIterator __it(__rfirst); __it != __rlast; __it++)
-            {
-                *(__result + --__C[*__it & __bitmask]) = *__it;
-            }
+            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, detail::sum_inputs());
+
+            for(; _rfirst != _rlast; _rfirst++)
+                *(_result + --_C[(*_rfirst >> _shift & _bitmask)]) = *_rfirst;
         }
     }
 
@@ -65,30 +78,30 @@ namespace boost
     * Based on code from Rosetta Code downloaded July 2013.
     */
     template <typename InputIterator>
-    void counting_sort( InputIterator __first, InputIterator __last,
-                    typename std::iterator_traits<InputIterator>::value_type const __max,
-                    typename std::iterator_traits<InputIterator>::value_type const __min = 0) 
+    void counting_sort( InputIterator _first, InputIterator _last,
+                    typename std::iterator_traits<InputIterator>::value_type const _max,
+                    typename std::iterator_traits<InputIterator>::value_type const _min = 0) 
     {
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
         
         BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
         BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
         
-        if(__first != __last && __max > __min)
+        if(_first != _last && _max > _min)
         {
-            uintmax_t const nlen = ( __max - __min ) + 1;
+            uintmax_t const nlen = ( _max - _min ) + 1;
             assert(nlen != 0);
             uintmax_t temp[nlen];
             std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
-            for(InputIterator __it(__first); __it != __last; __it++)
+            for(InputIterator _it(_first); _it != _last; _it++)
             {
-                assert(__min <= *__it);
-                assert(*__it <= __max);
-                temp[*__it - __min]++;
+                assert(_min <= *_it);
+                assert(*_it <= _max);
+                temp[*_it - _min]++;
             }
-            InputIterator it(__first);
-            for( value_type i = __min; i <= __max; i++ )
-                while( temp[i - __min]-- )
+            InputIterator it(_first);
+            for( value_type i = _min; i <= _max; i++ )
+                while( temp[i - _min]-- )
                 {
                     *(it++) = i;
                 }

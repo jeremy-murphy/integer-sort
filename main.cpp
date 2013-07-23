@@ -9,6 +9,7 @@
 #include "radix-sort.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <iostream>
 #include <vector>
@@ -16,59 +17,106 @@
 #include <algorithm>
 #include <string>
 #include <cstdlib>
+#include <ctime>
+#include <locale>
+#include <iomanip>
 
 using namespace std;
 using namespace boost;
 
-typedef unsigned T;
+typedef unsigned T; // TODO: Use MPL to test all the types: unsigned char, unsigned short, unsigned, unsigned long.
+
+void test(unsigned const __seed)
+{
+    typedef typename vector<T>::const_iterator value_const_iterator;
+    typedef typename vector<std::size_t>::const_iterator size_t_const_iterator;
+
+    cout << "=== Tests (seed = " << __seed << "). ===" << endl;
+    srand(__seed);
+    
+    /*********************************************************************************************
+     * Test a matrix of n and k values ...
+     *********************************************************************************************/
+
+    // TODO: Yes, I know this is a mess.
+    // mpl::for_each unsigned type...
+    vector<std::size_t> __k;
+    __k.push_back((1ul << 8) - 1);
+    if(numeric_limits<T>::max() >= (1ul << 16) - 1)
+        __k.push_back((1ul << 16) - 1);
+    if(numeric_limits<T>::max() >= (1ul << 32) - 1)
+        __k.push_back((1ul << 32) - 1);
+    if(numeric_limits<T>::max() >= (1ul << 64) - 1)
+        __k.push_back((1ul << 64) - 1);
+    
+    for(int __p = 1; __p <= 8; __p++) // 10^n.  I think any more than 8 will be trouble.
+    {
+        std::size_t const __n(pow10(__p));
+        
+        for(size_t_const_iterator __j(__k.begin()); __j != __k.end(); __j++)
+        {
+            cout << "Creating data vectors, n = " << __n << ", k = " << *__j << "..." << endl;
+            vector<T> A;
+            A.reserve(__n);
+            for(unsigned i = 0; i < __n; ++i)
+                A.push_back(rand() % *__j);
+            vector<T> B(A);
+
+            cout << "Sorting..." << endl;
+            struct timespec t0, t1;
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
+            // stable_counting_sort(A.begin(), A.end(), B.begin(), *__j);
+            radix_sort(A.begin(), A.end(), B.begin(), *__j);
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
+            
+            time_t __seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
+            long double __elapsed = __seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
+            
+            cout << "Time taken : " << __elapsed << " s" << endl;
+            
+            vector<T> X(A);
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
+            sort(X.begin(), X.end());
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
+
+            __seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
+            __elapsed = __seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
+
+            cout << "std::sort(): " << __elapsed << " s" << " ... ";
+
+            if(X == B)
+                cout << "[OK]" << endl;
+            else
+            {
+                cout << "[FAILED]" << endl;
+#ifndef NDEBUG // Print the results in debug mode.
+                cout << "==== A ====" << endl;
+                for(value_const_iterator __it(A.begin()); __it != A.end(); __it++) { cout << *__it << " "; };
+                cout << endl << "==== B ====" << endl;
+                for(value_const_iterator __it(B.begin()); __it != B.end(); __it++) { cout << *__it << " "; };
+                cout << endl << "==== X ====" << endl;
+                for(value_const_iterator __it(X.begin()); __it != X.end(); __it++) { cout << *__it << " "; };
+                cout << endl;
+#endif
+            }
+        }
+    }
+}
+
 
 int main(int argc, char **argv)
 {
-    unsigned const n = lexical_cast<unsigned>(argv[1]);
-    T const k = lexical_cast<T>(argv[2]), __min = 0;
-    cout << "k = " << k << ", n = " << n << endl;
-    // mt19937 engine;
-    // uniform_int_distribution<T> dist(__min, k);
-    // auto generator = bind(dist, engine);
-    cout << "Creating data vectors..." << endl;
-    vector<T> A;
-    A.reserve(n);
-    for(unsigned i = 0; i < n; ++i)
-        A.push_back(rand() % k);
-    vector<T> B(A);
-    cout << "Sorting..." << endl;
-    // auto const t0(std::chrono::high_resolution_clock::now());
-    stable_counting_sort(A.begin(), A.end(), B.begin(), k);
-    // radix_sort(A.cbegin(), A.cend(), B.begin(), k);
-    // integer_sort(B.begin(), B.end());
-    // counting_sort(B.begin(), B.end(), k);
-    // sort(A.begin(), A.end());
-    // auto const t1(std::chrono::high_resolution_clock::now());
-    // auto elapsed(chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
-    // cout << " After: " << A << endl;
-    // cout << "Elapsed time: " << elapsed << " ms.\n";
+    // Configure cout to my liking.
+    std::ios_base::sync_with_stdio(false);
+    std::locale::global(std::locale(""));
+    std::cout.imbue(std::locale());
     
-    // Test stable_counting_sort().
-    cout << "Testing ... ";
-    cout.flush();
-    vector<T> X(A);
-    sort(X.begin(), X.end());
-    if(X == B)
-        cout << "[OK]" << endl;
-    else
-        cout << "[FAILED]" << endl;
+    struct timespec tp;
+    clock_getres(CLOCK_PROCESS_CPUTIME_ID, &tp);
+    
+    // Say something about the clock res?
 
-#ifndef NDEBUG
-    cout << "==== A ====" << endl;
-    for_each(std::begin(A), std::end(A), [](T const &__e){ cout << __e; });
-    cout << endl << "==== B ====" << endl;
-    for_each(std::begin(B), std::end(B), [](T const &__e){ cout << __e; });
-    cout << endl << "==== X ====" << endl;
-    for_each(std::begin(X), std::end(X), [](T const &__e){ cout << __e; });
-    cout << endl;
-#endif
-    
-    radix_sort(A.begin(), A.end(), B.begin(), k);
+    test(argc < 2 ? time(NULL) : boost::lexical_cast<unsigned>(argv[1]));
     
     return 0;
 }
