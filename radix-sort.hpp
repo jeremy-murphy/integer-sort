@@ -44,6 +44,13 @@ namespace boost
         // Calculate some useful values.
         difference_type const n(std::distance(_first, _last));
         unsigned const b(sizeof(value_type) * 8);
+        
+        /* TODO: Calculate and use effective b.
+         * It's assumed that value_type is no larger than necessary.  That is, k >= 2^(b/2).
+         * However, if k << 2^b, then there are a lot of unused significant bits that do not need sorting.
+         * Using effective b could reduce the number of passes required to sort.
+         */
+        
         unsigned const flgn(floor(log2(n)));
 
 #define WORLD_ACCORDING_TO_CLRS
