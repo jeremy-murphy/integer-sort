@@ -36,7 +36,7 @@ namespace boost
     }
     
     template <typename InputIterator, typename OutputIterator>
-    void radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, typename std::iterator_traits<InputIterator>::value_type const _k, unsigned const _radix = 0)
+    void stable_radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, typename std::iterator_traits<InputIterator>::value_type const _k, unsigned const _radix = 0)
     {
         typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;

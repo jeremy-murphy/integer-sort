@@ -66,7 +66,7 @@ void test(unsigned const __seed)
             struct timespec t0, t1;
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
             // stable_counting_sort(A.begin(), A.end(), B.begin(), *__j);
-            radix_sort(A.begin(), A.end(), B.begin(), *__j);
+            stable_radix_sort(A.begin(), A.end(), B.begin(), *__j);
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
             
             time_t __seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
