@@ -9,22 +9,13 @@
 #include <algorithm>
 #include <cassert>
 #include <limits>
+#include <functional>
 
 #include <boost/static_assert.hpp>
 
 
 namespace boost
 {
-    namespace detail
-    {
-        class sum_inputs
-        {
-        public:
-            template <typename T>
-            T operator()(T const &input1, T const &input2) const { return input1 + input2; }
-        };
-    }
-    
     /**
     * Requires that client allocates space for result beforehand.
     * 
@@ -65,7 +56,7 @@ namespace boost
             for(; _first != _last; _first++)
                 _C[(*_first >> _shift & _bitmask)]++;
 
-            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, detail::sum_inputs());
+            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<value_type>());
 
             for(; _rfirst != _rlast; _rfirst++)
                 *(_result + --_C[(*_rfirst >> _shift & _bitmask)]) = *_rfirst;
