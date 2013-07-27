@@ -60,18 +60,10 @@ namespace boost
          */
         
         unsigned const flgn(floor(log2(n))); // TODO: Is there a faster way to calculate integer log2?
-
-#define WORLD_ACCORDING_TO_CLRS
-#ifdef WORLD_ACCORDING_TO_CLRS
         unsigned const r(_radix == 0 ? std::min((b < flgn ? b : flgn), 16u) : _radix); // Limit ourselves to sane values.
-#else
-        unsigned const r(_radix == 0 ? detail::greatest_r(b, flgn) : _radix);
-#endif
         unsigned const d(ceil(static_cast<float>(b) / static_cast<float>(r)));
         
-#ifndef NDEBUG
-        std::cout << "n = " << n << ", " << "b = " << b << ", " << "⌊lg(n)⌋ = " << flgn << ", r = " << r << ", d = " << d << std::endl;
-#endif
+        // std::cout << "n = " << n << ", " << "b = " << b << ", " << "⌊lg(n)⌋ = " << flgn << ", r = " << r << ", d = " << d << std::endl;
         assert(r * d >= b);
         
         if(d == 1)
@@ -81,7 +73,7 @@ namespace boost
         else
         {
             std::vector<value_type> _input(_first, _last);
-            value_type const _dk = (1ul << r) - 1; // TODO: This can be improved.
+            value_type const _dk = (value_type(1) << r) - 1; // TODO: This can be improved.
             
             if(d == 2)
             {
