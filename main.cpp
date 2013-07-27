@@ -23,7 +23,7 @@
 using namespace std;
 using namespace boost;
 
-template <typename T>
+template <template <typename T> class Distribution, typename T>
 void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned const _seed = 0)
 {
     typedef typename vector<T>::const_iterator value_const_iterator;
@@ -35,7 +35,7 @@ void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned cons
     {
         std::size_t const _n(pow10(_p));
         
-        random::uniform_int_distribution<T> const dist(_min, _k);
+        Distribution<T> const dist(_min, _k);
         cout << "Creating data vectors, n = " << _n << ", k = " << _k << "..." << endl;
         vector<T> A;
         A.reserve(_n);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     */
     
     // test<unsigned long>(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
-    test<unsigned char>(numeric_limits<unsigned char>::max(), 0, 10);
+    test<random::uniform_int_distribution>(numeric_limits<unsigned char>::max());
     
     return 0;
 }
