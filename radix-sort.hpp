@@ -35,6 +35,14 @@ namespace boost
         }
     }
     
+    
+    /**
+     * \fn stable_radix_sort
+     * \brief Stable LSD radix-sort that uses counting-sort.
+     * 
+     * \c InputIterator 
+     * \param _first ...
+     */
     template <typename InputIterator, typename OutputIterator>
     void stable_radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, typename std::iterator_traits<InputIterator>::value_type const _k, unsigned const _radix = 0)
     {
@@ -51,11 +59,11 @@ namespace boost
          * Using effective b could reduce the number of passes required to sort.
          */
         
-        unsigned const flgn(floor(log2(n)));
+        unsigned const flgn(floor(log2(n))); // TODO: Is there a faster way to calculate integer log2?
 
 #define WORLD_ACCORDING_TO_CLRS
 #ifdef WORLD_ACCORDING_TO_CLRS
-        unsigned const r(std::min((b < flgn ? b : flgn), 16u)); // Limit ourselves to sane values.
+        unsigned const r(_radix == 0 ? std::min((b < flgn ? b : flgn), 16u) : _radix); // Limit ourselves to sane values.
 #else
         unsigned const r(_radix == 0 ? detail::greatest_r(b, flgn) : _radix);
 #endif

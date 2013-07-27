@@ -54,12 +54,12 @@ namespace boost
             ReverseIterator const _rlast(_first);
 
             for(; _first != _last; _first++)
-                _C[(*_first >> _shift & _bitmask)]++;
+                _C[*_first >> _shift & _bitmask]++;
 
             std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<value_type>());
 
             for(; _rfirst != _rlast; _rfirst++)
-                *(_result + --_C[(*_rfirst >> _shift & _bitmask)]) = *_rfirst;
+                *(_result + --_C[*_rfirst >> _shift & _bitmask]) = *_rfirst;
         }
     }
 
