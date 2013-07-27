@@ -71,7 +71,7 @@ namespace boost
     */
     template <typename InputIterator>
     void counting_sort( InputIterator _first, InputIterator _last,
-                    typename std::iterator_traits<InputIterator>::value_type const _max,
+                    typename std::iterator_traits<InputIterator>::value_type const _k,
                     typename std::iterator_traits<InputIterator>::value_type const _min = 0) 
     {
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
@@ -79,23 +79,23 @@ namespace boost
         BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
         BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
         
-        if(_first != _last && _max > _min)
+        if(_first != _last && _k > _min)
         {
-            uintmax_t const nlen = ( _max - _min ) + 1;
+            uintmax_t const nlen = ( _k - _min ) + 1;
             assert(nlen != 0);
             uintmax_t temp[nlen];
             std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
             for(InputIterator _it(_first); _it != _last; _it++)
             {
                 assert(_min <= *_it);
-                assert(*_it <= _max);
+                assert(*_it <= _k);
                 temp[*_it - _min]++;
             }
-            InputIterator it(_first);
-            for( value_type i = _min; i <= _max; i++ )
+
+            for( uintmax_t i = _min; i <= _k; i++ )
                 while( temp[i - _min]-- )
                 {
-                    *(it++) = i;
+                    *(_first++) = i;
                 }
         }
     }
