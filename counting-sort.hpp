@@ -34,6 +34,7 @@ namespace boost
     template <typename BidirectionalIterator, typename OutputIterator>
     void stable_counting_sort(BidirectionalIterator _first, BidirectionalIterator _last, OutputIterator _result, 
                             typename std::iterator_traits<BidirectionalIterator>::value_type const _k,
+                            typename std::iterator_traits<BidirectionalIterator>::value_type const _min = 0,
                             unsigned const _r = sizeof(typename std::iterator_traits<BidirectionalIterator>::value_type) * 8,
                             unsigned const _d = 0)
     {
@@ -49,17 +50,17 @@ namespace boost
             assert(_k != std::numeric_limits<uintmax_t>::max()); // Because otherwise _k + 1 == 0.
             unsigned const _shift = _r * _d;
             uintmax_t const _bitmask = (1ul << _r) - 1;
-            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k) + 1); // NOTE: Could be a std::dynarray in C++14?
+            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k - _min) + 1); // NOTE: Could be a std::dynarray in C++14?
             ReverseIterator _rfirst(_last);
             ReverseIterator const _rlast(_first);
 
             for(; _first != _last; _first++)
-                _C[*_first >> _shift & _bitmask]++;
+                _C[((*_first >> _shift) - _min) & _bitmask]++;
 
             std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<value_type>());
 
             for(; _rfirst != _rlast; _rfirst++)
-                *(_result + --_C[*_rfirst >> _shift & _bitmask]) = *_rfirst;
+                *(_result + --_C[((*_rfirst >> _shift) - _min) & _bitmask]) = *_rfirst;
         }
     }
 

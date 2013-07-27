@@ -24,7 +24,10 @@ namespace boost
      * \param _first ...
      */
     template <typename InputIterator, typename OutputIterator>
-    void stable_radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, typename std::iterator_traits<InputIterator>::value_type const _k, unsigned const _radix = 0)
+    void stable_radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, 
+                           typename std::iterator_traits<InputIterator>::value_type const _k, 
+                           typename std::iterator_traits<InputIterator>::value_type const _min = 0, 
+                           unsigned const _radix = 0)
     {
         typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
@@ -48,24 +51,25 @@ namespace boost
         
         if(d == 1)
         {
-            boost::stable_counting_sort(_first, _last, _result, _k);
+            boost::stable_counting_sort(_first, _last, _result, _k, _min);
         }
         else
         {
             std::vector<value_type> _input(_first, _last);
             value_type const _dk = (value_type(1) << r) - 1; // TODO: This can be improved.
+            // NOTE: Is there an easy way to utilize _min here?
             
             if(d == 2)
             {
-                boost::stable_counting_sort(_first, _last, _input.begin(), _dk, r, 0);
-                boost::stable_counting_sort(_input.begin(), _input.end(), _result, _dk, r, 1);
+                boost::stable_counting_sort(_first, _last, _input.begin(), _dk, 0, r, 0);
+                boost::stable_counting_sort(_input.begin(), _input.end(), _result, _dk, 0, r, 1);
             }
             else
             {
                 std::vector<value_type> _output(n);
                 for(unsigned _i = 0; _i < d; _i++)
                 {
-                    boost::stable_counting_sort(_input.begin(), _input.end(), _output.begin(), _dk, r, _i);
+                    boost::stable_counting_sort(_input.begin(), _input.end(), _output.begin(), _dk, 0, r, _i);
                     std::swap(_input, _output);
                 }
                 

@@ -59,15 +59,19 @@ void test(unsigned const _seed)
             cout << "Creating data vectors, n = " << _n << ", k = " << *_j << "..." << endl;
             vector<T> A;
             A.reserve(_n);
+            T _min = numeric_limits<T>::max();
             for(unsigned i = 0; i < _n; ++i)
+            {
                 A.push_back(dist(rng));
+                if(A.back() < _min)
+                    _min = A.back();
+            }
             vector<T> B(A);
 
-            cout << "Sorting..." << endl;
+            cout << "Sorting (min = " << _min << ") ..." << endl;
             struct timespec t0, t1;
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
-            // stable_counting_sort(A.begin(), A.end(), B.begin(), *_j);
-            stable_radix_sort(A.begin(), A.end(), B.begin(), *_j);
+            stable_radix_sort(A.begin(), A.end(), B.begin(), *_j, _min);
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
             
             time_t _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
@@ -77,7 +81,7 @@ void test(unsigned const _seed)
             
             vector<T> X(A);
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
-            sort(X.begin(), X.end());
+            stable_sort(X.begin(), X.end());
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
 
             _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
