@@ -32,6 +32,8 @@ namespace boost
         typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
         typedef typename std::iterator_traits<InputIterator>::value_type value_type;
         
+        assert(_k >= _min);
+        
         // Calculate some useful values.
         difference_type const n(std::distance(_first, _last));
         unsigned const b(sizeof(value_type) * 8);

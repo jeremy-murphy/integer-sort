@@ -23,87 +23,66 @@
 using namespace std;
 using namespace boost;
 
-typedef unsigned T; // TODO: Use MPL to test all the types: unsigned char, unsigned short, unsigned, unsigned long.
-
-void test(unsigned const _seed)
+template <typename T>
+void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned const _seed = 0)
 {
     typedef typename vector<T>::const_iterator value_const_iterator;
-    typedef typename vector<std::size_t>::const_iterator size_t_const_iterator;
 
     cout << "=== Tests (seed = " << _seed << "). ===" << endl;
-    
-    /*********************************************************************************************
-     * Test a matrix of n and k values ...
-     *********************************************************************************************/
-
-    // TODO: Yes, I know this is a mess.
-    // TODO: mpl::for_each unsigned type...
-    vector<std::size_t> _k;
-    _k.push_back((1ul << 8) - 1);
-    if(numeric_limits<T>::max() >= (1ul << 16) - 1)
-        _k.push_back((1ul << 16) - 1);
-    if(numeric_limits<T>::max() >= (1ul << 32) - 1)
-        _k.push_back((1ul << 32) - 1);
-    if(numeric_limits<T>::max() >= (1ul << 64) - 1)
-        _k.push_back((1ul << 64) - 1);
-    
     random::mt19937 rng(_seed);
 
-    for(int _p = 1; _p <= 8; _p++) // 10^n.  I think any more than 8 will be trouble.
+    for(int _p = 1; _p <= _max10; _p++)
     {
         std::size_t const _n(pow10(_p));
         
-        for(size_t_const_iterator _j(_k.begin()); _j != _k.end(); _j++)
+        random::uniform_int_distribution<T> const dist(_min, _k);
+        cout << "Creating data vectors, n = " << _n << ", k = " << _k << "..." << endl;
+        vector<T> A;
+        A.reserve(_n);
+        T _actual_min = numeric_limits<T>::max();
+        for(unsigned i = 0; i < _n; ++i)
         {
-            random::uniform_int_distribution<T> const dist(0, *_j);
-            cout << "Creating data vectors, n = " << _n << ", k = " << *_j << "..." << endl;
-            vector<T> A;
-            A.reserve(_n);
-            T _min = numeric_limits<T>::max();
-            for(unsigned i = 0; i < _n; ++i)
-            {
-                A.push_back(dist(rng));
-                if(A.back() < _min)
-                    _min = A.back();
-            }
-            vector<T> B(A);
+            A.push_back(dist(rng));
+            if(A.back() < _actual_min)
+                _actual_min = A.back();
+        }
+        vector<T> B(A);
 
-            cout << "Sorting (min = " << _min << ") ..." << endl;
-            struct timespec t0, t1;
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
-            stable_radix_sort(A.begin(), A.end(), B.begin(), *_j, _min);
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
-            
-            time_t _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
-            long double _elapsed = _seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
-            
-            cout << "Time taken : " << _elapsed << " s" << endl;
-            
-            vector<T> X(A);
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
-            stable_sort(X.begin(), X.end());
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
+        cout << "Sorting (min = " << _actual_min << ") ..." << endl;
+        struct timespec t0, t1;
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
+        stable_radix_sort(A.begin(), A.end(), B.begin(), _k, _min);
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
+        
+        time_t _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
+        long double _elapsed = _seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
+        
+        cout << "Time taken : " << _elapsed << " s" << endl;
+        
+        vector<T> X(A);
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
+        stable_sort(X.begin(), X.end());
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
 
-            _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
-            _elapsed = _seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
+        _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
+        _elapsed = _seconds + abs(t1.tv_nsec - t0.tv_nsec) / 10000000000.0;
 
-            cout << "std::sort(): " << _elapsed << " s" << " ... ";
+        cout << "std::sort(): " << _elapsed << " s" << " ... ";
 
-            if(X == B)
-                cout << "[OK]" << endl;
-            else
-            {
-                cout << "[FAILED]" << endl;
+        if(X == B)
+            cout << "[OK]" << endl;
+        else
+        {
+            cout << "[FAILED]" << endl;
 #ifndef NDEBUG // Print the results in debug mode.
-                cout << "==== A ====" << endl;
-                for(value_const_iterator _it(A.begin()); _it != A.end(); _it++) { cout << *_it << " "; };
-                cout << endl << "==== B ====" << endl;
-                for(value_const_iterator _it(B.begin()); _it != B.end(); _it++) { cout << *_it << " "; };
-                cout << endl << "==== X ====" << endl;
-                for(value_const_iterator _it(X.begin()); _it != X.end(); _it++) { cout << *_it << " "; };
-                cout << endl;
+            cout << "==== A ====" << endl;
+            for(value_const_iterator _it(A.begin()); _it != A.end(); _it++) { cout << *_it << " "; };
+            cout << endl << "==== B ====" << endl;
+            for(value_const_iterator _it(B.begin()); _it != B.end(); _it++) { cout << *_it << " "; };
+            cout << endl << "==== X ====" << endl;
+            for(value_const_iterator _it(X.begin()); _it != X.end(); _it++) { cout << *_it << " "; };
+            cout << endl;
 #endif
-            }
         }
     }
 }
@@ -120,8 +99,15 @@ int main(int argc, char **argv)
     clock_getres(CLOCK_PROCESS_CPUTIME_ID, &tp);
     
     // Say something about the clock res?
-
-    test(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
+    /*
+    vector<T> _k;
+    for(unsigned _i = 0; _i < log2(sizeof(T)); ++_i)
+        _k.push_back((T(1) << 8 * (1 << _i)) - T(1));
+    _k.push_back(numeric_limits<T>::max()); // Why doesn't this value work in the above formula?
+    */
+    
+    // test<unsigned long>(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
+    test<unsigned char>(numeric_limits<unsigned char>::max(), 0, 10);
     
     return 0;
 }

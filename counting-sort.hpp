@@ -57,7 +57,7 @@ namespace boost
             for(; _first != _last; _first++)
                 _C[((*_first >> _shift) - _min) & _bitmask]++;
 
-            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<value_type>());
+            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<uintmax_t>());
 
             for(; _rfirst != _rlast; _rfirst++)
                 *(_result + --_C[((*_rfirst >> _shift) - _min) & _bitmask]) = *_rfirst;
