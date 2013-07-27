@@ -16,26 +16,6 @@
 
 namespace boost
 {
-    namespace detail
-    {
-        // We want r = 2^k and r <= lg(n).
-        unsigned greatest_r(unsigned const b, unsigned const flgn)
-        {
-            unsigned r = 8;
-            for(unsigned _i = 4; _i < 8; _i++)
-            {
-                unsigned const _s(1 << _i);
-                if(_s <= b && _s <= flgn)
-                    r = _s;
-                else
-                    break;
-            }
-            
-            return r;
-        }
-    }
-    
-    
     /**
      * \fn stable_radix_sort
      * \brief Stable LSD radix-sort that uses counting-sort.
