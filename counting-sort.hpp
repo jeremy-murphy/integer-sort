@@ -66,9 +66,13 @@ namespace boost
 
     
     /**
-    * In-place but not stable.
-    * Based on code from Rosetta Code downloaded July 2013.
-    */
+     * \brief Unstable in-place counting-sort.
+     * 
+     * Based on code from Rosetta Code downloaded July 2013
+     * This function will crash your machine if _k - _min is huge because it needs to allocate
+     * _k - _min * sizeof(uintmax_t) contiguous bytes.
+     * It is therefore recommended for use on data where _k - _min is relatively small.
+     */
     template <typename InputIterator>
     void counting_sort( InputIterator _first, InputIterator _last,
                     typename std::iterator_traits<InputIterator>::value_type const _k,
