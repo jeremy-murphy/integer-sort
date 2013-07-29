@@ -5,7 +5,7 @@
 #ifndef RADIX_SORT
 #define RADIX_SORT
 
-#include "counting-sort.hpp"
+#include <boost/algorithm/integer_sort/counting-sort.hpp>
 
 #include <iterator>
 #include <cmath>
