@@ -10,8 +10,10 @@
 #include <cassert>
 #include <limits>
 #include <functional>
+#include <vector>
 
 #include <boost/static_assert.hpp>
+#include <boost/integer.hpp>
 
 
 namespace boost
