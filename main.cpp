@@ -10,6 +10,8 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/random.hpp>
+#include <boost/test/included/test_exec_monitor.hpp>
+#include <boost/test/test_tools.hpp>
 
 #include <iostream>
 #include <vector>
@@ -23,10 +25,11 @@
 using namespace std;
 using namespace boost;
 
-template <template <typename T> class Distribution, typename T>
-void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned const _seed = 0)
+template <typename T, class Distribution>
+void test(Distribution dist, unsigned const _seed = 0, unsigned const _max10 = 6)
 {
-    typedef typename vector<T>::const_iterator value_const_iterator;
+    // typedef typename std::vector<T>::iterator iterator;
+    typedef typename std::vector<T>::const_iterator const_iterator;
 
     cout << "=== Tests (seed = " << _seed << "). ===" << endl;
     random::mt19937 rng(_seed);
@@ -34,24 +37,20 @@ void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned cons
     for(int _p = 1; _p <= _max10; _p++)
     {
         std::size_t const _n(pow10(_p));
-        
-        Distribution<T> const dist(_min, _k);
-        cout << "Creating data vectors, n = " << _n << ", k = " << _k << "..." << endl;
+        cout << "Creating data vectors, n = " << _n << endl;
         vector<T> A;
         A.reserve(_n);
-        T _actual_min = numeric_limits<T>::max();
         for(unsigned i = 0; i < _n; ++i)
         {
             A.push_back(dist(rng));
-            if(A.back() < _actual_min)
-                _actual_min = A.back();
         }
         vector<T> B(A);
-
-        cout << "Sorting (min = " << _actual_min << ") ..." << endl;
+        const_iterator const    _min = std::min_element(A.begin(), A.end()), 
+                                _max = std::max_element(A.begin(), A.end());
+        cout << "Sorting (min = " << *_min << ", k = " << *_max << ") ..." << endl;
         struct timespec t0, t1;
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t0);
-        stable_radix_sort(A.begin(), A.end(), B.begin(), _k, _min);
+        stable_radix_sort(A.begin(), A.end(), B.begin(), *_max, *_min);
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t1);
         
         time_t _seconds = (t1.tv_sec - t0.tv_sec > 0 ? t1.tv_sec - t0.tv_sec - 1 : 0);
@@ -69,26 +68,12 @@ void test(T const _k, T const _min = 0, unsigned const _max10 = 8, unsigned cons
 
         cout << "std::sort(): " << _elapsed << " s" << " ... ";
 
-        if(X == B)
-            cout << "[OK]" << endl;
-        else
-        {
-            cout << "[FAILED]" << endl;
-#ifndef NDEBUG // Print the results in debug mode.
-            cout << "==== A ====" << endl;
-            for(value_const_iterator _it(A.begin()); _it != A.end(); _it++) { cout << *_it << " "; };
-            cout << endl << "==== B ====" << endl;
-            for(value_const_iterator _it(B.begin()); _it != B.end(); _it++) { cout << *_it << " "; };
-            cout << endl << "==== X ====" << endl;
-            for(value_const_iterator _it(X.begin()); _it != X.end(); _it++) { cout << *_it << " "; };
-            cout << endl;
-#endif
-        }
+        BOOST_CHECK(X == B);
     }
 }
 
 
-int main(int argc, char **argv)
+int test_main(int argc, char **argv)
 {
     // Configure cout to my liking.
     std::ios_base::sync_with_stdio(false);
@@ -98,16 +83,12 @@ int main(int argc, char **argv)
     struct timespec tp;
     clock_getres(CLOCK_PROCESS_CPUTIME_ID, &tp);
     
-    // Say something about the clock res?
-    /*
-    vector<T> _k;
-    for(unsigned _i = 0; _i < log2(sizeof(T)); ++_i)
-        _k.push_back((T(1) << 8 * (1 << _i)) - T(1));
-    _k.push_back(numeric_limits<T>::max()); // Why doesn't this value work in the above formula?
-    */
+    unsigned _seed(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
     
-    // test<unsigned long>(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
-    test<random::uniform_int_distribution>(numeric_limits<unsigned char>::max());
+    test<unsigned char>(random::poisson_distribution<unsigned char>(numeric_limits<unsigned char>::max() / 2), _seed);
+    test<unsigned short>(random::poisson_distribution<unsigned short>(numeric_limits<unsigned short>::max() / 2), _seed);
+    test<unsigned int>(random::poisson_distribution<unsigned int>(numeric_limits<unsigned int>::max() / 2), _seed);
+    test<unsigned long>(random::poisson_distribution<unsigned long>(numeric_limits<unsigned long>::max() / 2), _seed);
     
     return 0;
 }
