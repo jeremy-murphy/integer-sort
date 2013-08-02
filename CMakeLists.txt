@@ -3,5 +3,5 @@ project(integer_sort)
 include_directories("." "../algorithm_sorting/")
 add_executable(integer_sort libs/algorithm/sorting/test/test.cpp)
 target_link_libraries(integer_sort rt)
-
 install(TARGETS integer_sort RUNTIME DESTINATION bin)
+find_package(Boost 1.48.0 REQUIRED)
