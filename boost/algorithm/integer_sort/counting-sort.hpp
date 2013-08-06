@@ -18,6 +18,15 @@
 
 namespace boost {
 namespace algorithm {
+    namespace detail {
+        
+        template <typename Value, typename Shift, typename Bitmask>
+        inline Value count_index(Value const _a, Shift const _b, Value const _c, Bitmask const _d)
+        {
+            return ((_a >> _b) - _c) & _d;
+        }
+        
+    }
     /**
     * Requires that client allocates space for result beforehand.
     * 
@@ -49,20 +58,22 @@ namespace algorithm {
         if(_first != _last)
         {
             assert(_r != 0);
-            assert(_k != std::numeric_limits<uintmax_t>::max()); // Because otherwise _k + 1 == 0.
+            assert(_k - _min != std::numeric_limits<uintmax_t>::max()); // Because otherwise _k - min + 1 == 0.
             unsigned const _shift = _r * _d;
             uintmax_t const _bitmask = (1ul << _r) - 1;
-            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k - _min) + 1); // NOTE: Could be a std::dynarray in C++14?
+            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k - _min) + 1);
             ReverseIterator _rfirst(_last);
             ReverseIterator const _rlast(_first);
 
+            // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
             for(; _first != _last; _first++)
-                _C[((*_first >> _shift) - _min) & _bitmask]++;
+                _C[detail::count_index(*_first, _shift, _min, _bitmask)]++;
 
+            // Accumulate the counts in the temporary array.
             std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<uintmax_t>());
 
             for(; _rfirst != _rlast; _rfirst++)
-                *(_result + --_C[((*_rfirst >> _shift) - _min) & _bitmask]) = *_rfirst;
+                *(_result + --_C[detail::count_index(*_rfirst, _shift, _min, _bitmask)]) = *_rfirst;
         }
     }
 
