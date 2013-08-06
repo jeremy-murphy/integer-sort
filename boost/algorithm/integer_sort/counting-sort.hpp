@@ -16,8 +16,8 @@
 #include <boost/integer.hpp>
 
 
-namespace boost
-{
+namespace boost {
+namespace algorithm {
     /**
     * Requires that client allocates space for result beforehand.
     * 
@@ -105,5 +105,6 @@ namespace boost
                 }
         }
     }
+}
 }
 #endif

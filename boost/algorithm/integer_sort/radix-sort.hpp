@@ -14,8 +14,8 @@
 #include <iostream>
 #endif
 
-namespace boost
-{
+namespace boost {
+namespace algorithm {
     /**
      * \fn stable_radix_sort
      * \brief Stable LSD radix-sort that uses counting-sort.
@@ -55,7 +55,7 @@ namespace boost
             assert(r * d >= b);
             
             if(d == 1)
-                boost::stable_counting_sort(_first, _last, _result, _k, _min);
+                stable_counting_sort(_first, _last, _result, _k, _min);
             else
             {
                 std::vector<value_type> _input(_first, _last);
@@ -64,15 +64,15 @@ namespace boost
                 
                 if(d == 2)
                 {
-                    boost::stable_counting_sort(_first, _last, _input.begin(), _dk, 0, r, 0);
-                    boost::stable_counting_sort(_input.begin(), _input.end(), _result, _dk, 0, r, 1);
+                    stable_counting_sort(_first, _last, _input.begin(), _dk, 0, r, 0);
+                    stable_counting_sort(_input.begin(), _input.end(), _result, _dk, 0, r, 1);
                 }
                 else
                 {
                     std::vector<value_type> _output(n);
                     for(unsigned _i = 0; _i < d; _i++)
                     {
-                        boost::stable_counting_sort(_input.begin(), _input.end(), _output.begin(), _dk, 0, r, _i);
+                        stable_counting_sort(_input.begin(), _input.end(), _output.begin(), _dk, 0, r, _i);
                         std::swap(_input, _output);
                     }
                     
@@ -81,5 +81,6 @@ namespace boost
             }
         }
     }
+}
 }
 #endif

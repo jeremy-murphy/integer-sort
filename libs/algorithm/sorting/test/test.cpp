@@ -21,6 +21,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace boost::algorithm;
 
 template <typename T, class Distribution>
 void test(Distribution dist, unsigned const _seed = 0, unsigned const _max10 = 6)
