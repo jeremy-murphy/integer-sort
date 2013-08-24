@@ -23,14 +23,18 @@ namespace algorithm {
      * \c InputIterator 
      * \param _first ...
      */
-    template <typename InputIterator, typename OutputIterator>
-    void stable_radix_sort(InputIterator _first, InputIterator _last, OutputIterator _result, 
-                           typename std::iterator_traits<InputIterator>::value_type const _k, 
-                           typename std::iterator_traits<InputIterator>::value_type const _min = 0, 
+    template <typename _InputIterator, typename _OutputIterator>
+    BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<_InputIterator>))
+        ((Mutable_RandomAccessIterator<_OutputIterator>))
+        ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+                           (void))
+    stable_radix_sort(_InputIterator _first, _InputIterator _last, _OutputIterator _result, 
+                           typename std::iterator_traits<_InputIterator>::value_type const _k, 
+                           typename std::iterator_traits<_InputIterator>::value_type const _min = 0, 
                            unsigned const _radix = 0)
     {
-        typedef typename std::iterator_traits<InputIterator>::difference_type difference_type;
-        typedef typename std::iterator_traits<InputIterator>::value_type value_type;
+        typedef typename std::iterator_traits<_InputIterator>::difference_type difference_type;
+        typedef typename std::iterator_traits<_InputIterator>::value_type value_type;
         
         assert(_k >= _min);
         

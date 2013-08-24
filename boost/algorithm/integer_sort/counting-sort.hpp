@@ -14,6 +14,8 @@
 
 #include <boost/static_assert.hpp>
 #include <boost/integer.hpp>
+#include <boost/concept_check.hpp>
+#include <boost/concept/requires.hpp>
 
 
 namespace boost {
@@ -42,18 +44,18 @@ namespace algorithm {
     * \c _r The radix or width of digit to consider.
     * \c _d Which digit to consider.
     */
-    template <typename BidirectionalIterator, typename OutputIterator>
-    void stable_counting_sort(BidirectionalIterator _first, BidirectionalIterator _last, OutputIterator _result, 
-                            typename std::iterator_traits<BidirectionalIterator>::value_type const _k,
-                            typename std::iterator_traits<BidirectionalIterator>::value_type const _min = 0,
-                            unsigned const _r = sizeof(typename std::iterator_traits<BidirectionalIterator>::value_type) * 8,
+    template <typename _InputIterator, typename _OutputIterator>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<_InputIterator>))
+            ((Mutable_RandomAccessIterator<_OutputIterator>))
+            ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+                           (void))
+    stable_counting_sort(_InputIterator _first, _InputIterator _last, _OutputIterator _result, 
+                            typename std::iterator_traits<_InputIterator>::value_type const _k,
+                            typename std::iterator_traits<_InputIterator>::value_type const _min = 0,
+                            unsigned const _r = sizeof(typename std::iterator_traits<_InputIterator>::value_type) * 8,
                             unsigned const _d = 0)
     {
-        // TODO: Statically check the iterators for type sanity.
-        typedef typename std::iterator_traits<BidirectionalIterator>::value_type value_type;
-        typedef std::reverse_iterator<BidirectionalIterator> ReverseIterator;
-        BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
-        BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
+        typedef std::reverse_iterator<_InputIterator> ReverseIterator;
 
         if(_first != _last)
         {
@@ -86,23 +88,21 @@ namespace algorithm {
      * _k - _min * sizeof(uintmax_t) contiguous bytes.
      * It is therefore recommended for use on data where _k - _min is relatively small.
      */
-    template <typename InputIterator>
-    void counting_sort( InputIterator _first, InputIterator _last,
-                    typename std::iterator_traits<InputIterator>::value_type const _k,
-                    typename std::iterator_traits<InputIterator>::value_type const _min = 0) 
+    template <typename _InputIterator>
+        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<_InputIterator>))
+        ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+        (void))
+    counting_sort( _InputIterator _first, _InputIterator _last,
+                    typename std::iterator_traits<_InputIterator>::value_type const _k,
+                    typename std::iterator_traits<_InputIterator>::value_type const _min = 0) 
     {
-        typedef typename std::iterator_traits<InputIterator>::value_type value_type;
-        
-        BOOST_STATIC_ASSERT(std::numeric_limits<value_type>::is_integer);
-        BOOST_STATIC_ASSERT(!std::numeric_limits<value_type>::is_signed);
-        
         if(_first != _last && _k > _min)
         {
             uintmax_t const nlen = ( _k - _min ) + 1;
             assert(nlen != 0);
             uintmax_t temp[nlen];
             std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
-            for(InputIterator _it(_first); _it != _last; _it++)
+            for(_InputIterator _it(_first); _it != _last; _it++)
             {
                 assert(_min <= *_it);
                 assert(*_it <= _k);
