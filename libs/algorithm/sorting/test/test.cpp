@@ -20,8 +20,24 @@
 #include <typeinfo>
 
 using namespace std;
-using namespace boost;
+using boost::lexical_cast;
+using namespace boost::random;
 using namespace boost::algorithm;
+
+// TODO: Finish this fixture and integrate it with proper fixture test cases.
+struct foo
+{
+    foo()
+    {
+        BOOST_TEST_MESSAGE( "setup fixture" );
+    }
+    
+    ~foo()
+    {
+        BOOST_TEST_MESSAGE( "teardown fixture" );
+    }
+};
+
 
 template <typename T, class Distribution>
 void test(Distribution dist, unsigned const _seed = 0, unsigned const _max10 = 6)
@@ -30,7 +46,7 @@ void test(Distribution dist, unsigned const _seed = 0, unsigned const _max10 = 6
     typedef typename std::vector<T>::const_iterator const_iterator;
 
     cout << "=== Test (seed = " << _seed << ", T = " << typeid(T).name() << "). ===" << endl;
-    random::mt19937 rng(_seed);
+    mt19937 rng(_seed);
 
     for(int _p = 1; _p <= _max10; _p++)
     {
@@ -63,16 +79,16 @@ int test_main(int argc, char **argv)
     unsigned _seed(argc < 2 ? time(NULL) : lexical_cast<unsigned>(argv[1]));
     
     cout << "Testing with a poisson_distribution, mean = numeric_limits<T>::max() / 2" << endl;
-    test<unsigned char>(random::poisson_distribution<unsigned char>(numeric_limits<unsigned char>::max() / 2), _seed);
-    test<unsigned short>(random::poisson_distribution<unsigned short>(numeric_limits<unsigned short>::max() / 2), _seed);
-    test<unsigned int>(random::poisson_distribution<unsigned int>(numeric_limits<unsigned int>::max() / 2), _seed);
-    test<unsigned long>(random::poisson_distribution<unsigned long>(numeric_limits<unsigned long>::max() / 2), _seed);
+    test<unsigned char>(poisson_distribution<unsigned char>(numeric_limits<unsigned char>::max() / 2), _seed);
+    test<unsigned short>(poisson_distribution<unsigned short>(numeric_limits<unsigned short>::max() / 2), _seed);
+    test<unsigned int>(poisson_distribution<unsigned int>(numeric_limits<unsigned int>::max() / 2), _seed);
+    test<unsigned long>(poisson_distribution<unsigned long>(numeric_limits<unsigned long>::max() / 2), _seed);
 
     cout << "Testing with a uniform_int_distribution, min = 0, k = numeric_limits<T>::max()" << endl;
-    test<unsigned char>(random::uniform_int_distribution<unsigned char>(0, numeric_limits<unsigned char>::max()), _seed);
-    test<unsigned short>(random::uniform_int_distribution<unsigned short>(0, numeric_limits<unsigned short>::max()), _seed);
-    test<unsigned int>(random::uniform_int_distribution<unsigned int>(0, numeric_limits<unsigned int>::max()), _seed);
-    test<unsigned long>(random::uniform_int_distribution<unsigned long>(0, numeric_limits<unsigned long>::max()), _seed);
+    test<unsigned char>(uniform_int_distribution<unsigned char>(0, numeric_limits<unsigned char>::max()), _seed);
+    test<unsigned short>(uniform_int_distribution<unsigned short>(0, numeric_limits<unsigned short>::max()), _seed);
+    test<unsigned int>(uniform_int_distribution<unsigned int>(0, numeric_limits<unsigned int>::max()), _seed);
+    test<unsigned long>(uniform_int_distribution<unsigned long>(0, numeric_limits<unsigned long>::max()), _seed);
     
     return 0;
 }
