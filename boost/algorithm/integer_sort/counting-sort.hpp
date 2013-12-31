@@ -23,9 +23,9 @@ namespace algorithm {
     namespace detail {
         
         template <typename Value, typename Shift, typename Bitmask>
-        inline Value count_index(Value const _a, Shift const _b, Value const _c, Bitmask const _d)
+        inline Value count_index(Value const a, Shift const b, Value const c, Bitmask const d)
         {
-            return ((_a >> _b) - _c) & _d;
+            return ((a >> b) - c) & d;
         }
         
     }
@@ -37,45 +37,45 @@ namespace algorithm {
     * \c BidirectionalIterator Type of input iterator.
     * \c OutputIterator Type of output iterator: only required to be forward.
     * 
-    * \c _first Input iterator that points to the first element of the unsorted data.
-    * \c _last Input iterator that points past the last element of the unsorted data.
-    * \c _result Output iterator that points to the first element where the sorted data will go.
-    * \c _k The largest value present in the input >> _r * _d.
-    * \c _r The radix or width of digit to consider.
-    * \c _d Which digit to consider.
+    * \c first Input iterator that points to the first element of the unsorted data.
+    * \c last Input iterator that points past the last element of the unsorted data.
+    * \c result Output iterator that points to the first element where the sorted data will go.
+    * \c k The largest value present in the input >> r * d.
+    * \c r The radix or width of digit to consider.
+    * \c d Which digit to consider.
     */
-    template <typename _InputIterator, typename _OutputIterator>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<_InputIterator>))
-            ((Mutable_RandomAccessIterator<_OutputIterator>))
-            ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+    template <typename InputIterator, typename OutputIterator>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<InputIterator>))
+            ((Mutable_RandomAccessIterator<OutputIterator>))
+            ((UnsignedInteger<typename std::iterator_traits<InputIterator>::value_type>)), 
                            (void))
-    stable_counting_sort(_InputIterator _first, _InputIterator _last, _OutputIterator _result, 
-                            typename std::iterator_traits<_InputIterator>::value_type const _k,
-                            typename std::iterator_traits<_InputIterator>::value_type const _min = 0,
-                            unsigned const _r = sizeof(typename std::iterator_traits<_InputIterator>::value_type) * 8,
-                            unsigned const _d = 0)
+    stable_counting_sort(InputIterator first, InputIterator last, OutputIterator result, 
+                            typename std::iterator_traits<InputIterator>::value_type const k,
+                            typename std::iterator_traits<InputIterator>::value_type const min = 0,
+                            unsigned const r = sizeof(typename std::iterator_traits<InputIterator>::value_type) * 8,
+                            unsigned const d = 0)
     {
-        typedef std::reverse_iterator<_InputIterator> ReverseIterator;
+        typedef std::reverse_iterator<InputIterator> ReverseIterator;
 
-        if(_first != _last)
+        if(first != last)
         {
-            assert(_r != 0);
-            assert(_k - _min != std::numeric_limits<uintmax_t>::max()); // Because otherwise _k - min + 1 == 0.
-            unsigned const _shift = _r * _d;
-            uintmax_t const _bitmask = (1ul << _r) - 1;
-            std::vector<uintmax_t> _C(static_cast<uintmax_t>(_k - _min) + 1);
-            ReverseIterator _rfirst(_last);
-            ReverseIterator const _rlast(_first);
+            assert(r != 0);
+            assert(k - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
+            unsigned const shift = r * d;
+            uintmax_t const bitmask = (1ul << r) - 1;
+            std::vector<uintmax_t> C(static_cast<uintmax_t>(k - min) + 1);
+            ReverseIterator rfirst(last);
+            ReverseIterator const rlast(first);
 
             // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
-            for(; _first != _last; _first++)
-                _C[detail::count_index(*_first, _shift, _min, _bitmask)]++;
+            for(; first != last; first++)
+                C[detail::count_index(*first, shift, min, bitmask)]++;
 
             // Accumulate the counts in the temporary array.
-            std::transform(_C.begin() + 1, _C.end(), _C.begin(), _C.begin() + 1, std::plus<uintmax_t>());
+            std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
 
-            for(; _rfirst != _rlast; _rfirst++)
-                *(_result + --_C[detail::count_index(*_rfirst, _shift, _min, _bitmask)]) = *_rfirst;
+            for(; rfirst != rlast; rfirst++)
+                *(result + --C[detail::count_index(*rfirst, shift, min, bitmask)]) = *rfirst;
         }
     }
 
@@ -88,32 +88,30 @@ namespace algorithm {
      * _k - _min * sizeof(uintmax_t) contiguous bytes.
      * It is therefore recommended for use on data where _k - _min is relatively small.
      */
-    template <typename _InputIterator>
-        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<_InputIterator>))
-        ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+    template <typename InputIterator>
+        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<InputIterator>))
+        ((UnsignedInteger<typename std::iterator_traits<InputIterator>::value_type>)), 
         (void))
-    counting_sort( _InputIterator _first, _InputIterator _last,
-                    typename std::iterator_traits<_InputIterator>::value_type const _k,
-                    typename std::iterator_traits<_InputIterator>::value_type const _min = 0) 
+    counting_sort(InputIterator first, InputIterator last,
+                    typename std::iterator_traits<InputIterator>::value_type const k,
+                    typename std::iterator_traits<InputIterator>::value_type const min = 0) 
     {
-        if(_first != _last && _k > _min)
+        if(first != last && k > min)
         {
-            uintmax_t const nlen = ( _k - _min ) + 1;
+            uintmax_t const nlen = ( k - min ) + 1;
             assert(nlen != 0);
             uintmax_t temp[nlen];
             std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
-            for(_InputIterator _it(_first); _it != _last; _it++)
+            for(InputIterator it(first); it != last; it++)
             {
-                assert(_min <= *_it);
-                assert(*_it <= _k);
-                temp[*_it - _min]++;
+                assert(min <= *it);
+                assert(*it <= k);
+                temp[*it - min]++;
             }
 
-            for( uintmax_t i = _min; i <= _k; i++ )
-                while( temp[i - _min]-- )
-                {
-                    *(_first++) = i;
-                }
+            for( uintmax_t i = min; i <= k; i++ )
+                while( temp[i - min]-- )
+                    *(first++) = i;
         }
     }
 }
