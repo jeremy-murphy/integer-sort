@@ -21,28 +21,26 @@ namespace algorithm {
      * \brief Stable LSD radix-sort that uses counting-sort.
      * 
      * \c InputIterator 
-     * \param _first ...
+     * \param first ...
      */
-    template <typename _InputIterator, typename _OutputIterator>
-    BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<_InputIterator>))
-        ((Mutable_RandomAccessIterator<_OutputIterator>))
-        ((UnsignedInteger<typename std::iterator_traits<_InputIterator>::value_type>)), 
+    template <typename Input, typename Output>
+    BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
+        ((Mutable_RandomAccessIterator<Output>))
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
                            (void))
-    stable_radix_sort(_InputIterator _first, _InputIterator _last, _OutputIterator _result, 
-                           typename std::iterator_traits<_InputIterator>::value_type const _k, 
-                           typename std::iterator_traits<_InputIterator>::value_type const _min = 0, 
-                           unsigned const _radix = 0)
+    stable_radix_sort(Input first, Input last, Output result, 
+                        typename std::iterator_traits<Input>::value_type const k, 
+                        typename std::iterator_traits<Input>::value_type const minimum = 0, 
+                        unsigned const radix = 0)
     {
-        typedef typename std::iterator_traits<_InputIterator>::difference_type difference_type;
-        typedef typename std::iterator_traits<_InputIterator>::value_type value_type;
+        typedef typename std::iterator_traits<Input>::difference_type difference_type;
+        typedef typename std::iterator_traits<Input>::value_type value_type;
         
-        assert(_k >= _min);
+        assert(k >= minimum);
         
-        // Calculate some useful values.
-        
-        if(_first != _last)
+        if(first != last)
         {
-            difference_type const n(std::distance(_first, _last));
+            difference_type const n(std::distance(first, last));
             unsigned const b(sizeof(value_type) * 8);
             
             /* TODO: Calculate and use effective b.
@@ -51,36 +49,35 @@ namespace algorithm {
             * Using effective b could reduce the number of passes required to sort.
             */
             
-            unsigned const _flgn(floor(log2(n))); // TODO: Is there a faster way to calculate integer log2?
-            unsigned const r(_radix == 0 ? std::min((b < _flgn ? b : _flgn), 16u) : _radix); // Limit ourselves to sane values.
-            unsigned const d(ceil(static_cast<float>(b) / static_cast<float>(r)));
+            unsigned const flgn(floor(log2(n))); // TODO: Is there a faster way to calculate integer log2?
+            unsigned const r(radix == 0 ? std::min((b < flgn ? b : flgn), 16u) : radix); // Limit ourselves to sane values.
+            unsigned const d(ceil(static_cast<double>(b) / static_cast<double>(r)));
             
-            // std::cout << "n = " << n << ", " << "b = " << b << ", " << "⌊lg(n)⌋ = " << flgn << ", r = " << r << ", d = " << d << std::endl;
             assert(r * d >= b);
             
             if(d == 1)
-                stable_counting_sort(_first, _last, _result, _k, _min);
+                stable_counting_sort(first, last, result, k, minimum);
             else
             {
-                std::vector<value_type> _input(_first, _last);
-                value_type const _dk = (value_type(1) << r) - 1; // TODO: This can be improved.
-                // NOTE: Is there an easy way to utilize _min here?
+                std::vector<value_type> input(first, last);
+                value_type const dk = (value_type(1) << r) - 1; // TODO: This can be improved.
+                // NOTE: Is there an easy way to utilize minimum here?
                 
                 if(d == 2)
                 {
-                    stable_counting_sort(_first, _last, _input.begin(), _dk, 0, r, 0);
-                    stable_counting_sort(_input.begin(), _input.end(), _result, _dk, 0, r, 1);
+                    stable_counting_sort(first, last, input.begin(), dk, 0, r, 0);
+                    stable_counting_sort(input.begin(), input.end(), result, dk, 0, r, 1);
                 }
                 else
                 {
-                    std::vector<value_type> _output(n);
-                    for(unsigned _i = 0; _i < d; _i++)
+                    std::vector<value_type> output(n);
+                    for(unsigned i = 0; i < d; i++)
                     {
-                        stable_counting_sort(_input.begin(), _input.end(), _output.begin(), _dk, 0, r, _i);
-                        std::swap(_input, _output);
+                        stable_counting_sort(input.begin(), input.end(), output.begin(), dk, 0, r, i);
+                        std::swap(input, output);
                     }
                     
-                    std::copy(_input.begin(), _input.end(), _result);
+                    std::copy(input.begin(), input.end(), result);
                 }
             }
         }
