@@ -1,0 +1,6 @@
+find_package(Boost 1.48.0 REQUIRED COMPONENTS test_exec_monitor system timer)
+add_executable(stable test.cpp)
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+target_link_libraries(stable rt ${Boost_LIBRARIES})
+add_test(stable stable)
