@@ -59,11 +59,11 @@ void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
         std::vector<T> B(A);
         const_iterator const    _min = std::min_element(A.begin(), A.end()), 
                                 _max = std::max_element(A.begin(), A.end());
-        std::cout << "n = " << n << ", min = " << (*_min) * 1u << ", k = " << (*_max) * 1u << " ...";
+        std::cout << "n = " << n << ", range = " << (*_max - *_min) * 1u << " ...";
         std::cout.flush();
         std::vector<T> X(A);
         boost::timer::cpu_timer timer;
-        stable_radix_sort(A.begin(), A.end(), B.begin(), *_max, *_min);
+        stable_radix_sort(A.begin(), A.end(), B.begin(), no_op<T>(), *_max, *_min);
         boost::timer::cpu_times t1 = timer.elapsed();
         std::stable_sort(X.begin(), X.end());
         boost::timer::cpu_times t2 = timer.elapsed();

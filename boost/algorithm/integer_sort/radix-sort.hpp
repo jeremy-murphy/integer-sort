@@ -23,20 +23,21 @@ namespace algorithm {
      * \c InputIterator 
      * \param first ...
      */
-    template <typename Input, typename Output>
+    template <typename Input, typename Output, typename Conversion>
     BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
         ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
+        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
     stable_radix_sort(Input first, Input last, Output result, 
-                        typename std::iterator_traits<Input>::value_type const k, 
-                        typename std::iterator_traits<Input>::value_type const minimum = 0, 
-                        unsigned const radix = 0)
+        Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>(),
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const k = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min = 0,
+        unsigned const radix = 0)
     {
         typedef typename std::iterator_traits<Input>::difference_type difference_type;
         typedef typename std::iterator_traits<Input>::value_type value_type;
         
-        assert(k >= minimum);
+        assert(k >= min);
         
         if(first != last)
         {
@@ -56,7 +57,7 @@ namespace algorithm {
             assert(r * d >= b);
             
             if(d == 1)
-                stable_counting_sort(first, last, result, no_op<value_type>(), k, minimum);
+                stable_counting_sort(first, last, result, conv, k, min);
             else
             {
                 std::vector<value_type> input(first, last);
@@ -65,15 +66,15 @@ namespace algorithm {
                 
                 if(d == 2)
                 {
-                    stable_counting_sort(first, last, input.begin(), no_op<value_type>(), dk, 0, r, 0);
-                    stable_counting_sort(input.begin(), input.end(), result, no_op<value_type>(), dk, 0, r, 1);
+                    stable_counting_sort(first, last, input.begin(), conv, dk, 0, r, 0);
+                    stable_counting_sort(input.begin(), input.end(), result, conv, dk, 0, r, 1);
                 }
                 else
                 {
                     std::vector<value_type> output(n);
                     for(unsigned i = 0; i < d; i++)
                     {
-                        stable_counting_sort(input.begin(), input.end(), output.begin(), no_op<value_type>(), dk, 0, r, i);
+                        stable_counting_sort(input.begin(), input.end(), output.begin(), conv, dk, 0, r, i);
                         std::swap(input, output);
                     }
                     
