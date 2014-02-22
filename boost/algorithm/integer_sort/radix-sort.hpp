@@ -51,7 +51,7 @@ namespace algorithm {
             */
             
             unsigned const flgn(floor(log2(n))); // TODO: Is there a faster way to calculate integer log2?
-            unsigned const r(radix == 0 ? std::min((b < flgn ? b : flgn), 16u) : radix); // Limit ourselves to sane values.
+            unsigned const r(radix == 0 ? std::min((b < flgn ? b : flgn), 8u) : radix); // Limit ourselves to sane values.
             unsigned const d(ceil(static_cast<double>(b) / static_cast<double>(r)));
             
             assert(r * d >= b);
@@ -60,25 +60,25 @@ namespace algorithm {
                 stable_counting_sort(first, last, result, conv, k, min);
             else
             {
-                std::vector<value_type> input(first, last);
+                std::vector<value_type> tmp1(first, last);
                 value_type const dk = (value_type(1) << r) - 1; // TODO: This can be improved.
                 // NOTE: Is there an easy way to utilize minimum here?
                 
                 if(d == 2)
                 {
-                    stable_counting_sort(first, last, input.begin(), conv, dk, 0, r, 0);
-                    stable_counting_sort(input.begin(), input.end(), result, conv, dk, 0, r, 1);
+                    stable_counting_sort(first, last, tmp1.begin(), conv, dk, 0, r, 0);
+                    stable_counting_sort(tmp1.begin(), tmp1.end(), result, conv, dk, 0, r, 1);
                 }
                 else
                 {
-                    std::vector<value_type> output(n);
+                    std::vector<value_type> tmp2(n);
                     for(unsigned i = 0; i < d; i++)
                     {
-                        stable_counting_sort(input.begin(), input.end(), output.begin(), conv, dk, 0, r, i);
-                        std::swap(input, output);
+                        stable_counting_sort(tmp1.begin(), tmp1.end(), tmp2.begin(), conv, dk, 0, r, i);
+                        std::swap(tmp1, tmp2);
                     }
                     
-                    std::copy(input.begin(), input.end(), result);
+                    std::copy(tmp1.begin(), tmp1.end(), result);
                 }
             }
         }
