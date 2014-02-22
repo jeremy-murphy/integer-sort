@@ -12,10 +12,12 @@
 #include <functional>
 #include <vector>
 
-#include <boost/static_assert.hpp>
-#include <boost/integer.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
+#include <boost/integer.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/utility/result_of.hpp>
 
 
 namespace boost {
@@ -27,8 +29,21 @@ namespace algorithm {
         {
             return ((a >> b) - c) & d;
         }
-        
     }
+    
+    
+    template <typename T>
+    struct no_op
+    {
+        typedef T result_type;
+
+        T const &operator()(T const &x) const
+        {
+            return x;
+        }
+    };
+    
+    
     /**
     * Requires that client allocates space for result beforehand.
     * 
@@ -44,19 +59,20 @@ namespace algorithm {
     * \c r The radix or width of digit to consider.
     * \c d Which digit to consider.
     */
-    template <typename InputIterator, typename OutputIterator>
+    template <typename InputIterator, typename OutputIterator, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<InputIterator>))
             ((Mutable_RandomAccessIterator<OutputIterator>))
-            ((UnsignedInteger<typename std::iterator_traits<InputIterator>::value_type>)), 
+            ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type>)), 
                            (void))
     stable_counting_sort(InputIterator first, InputIterator last, OutputIterator result, 
-                            typename std::iterator_traits<InputIterator>::value_type const k,
-                            typename std::iterator_traits<InputIterator>::value_type const min = 0,
-                            unsigned const r = sizeof(typename std::iterator_traits<InputIterator>::value_type) * 8,
-                            unsigned const d = 0)
+        Conversion conv = no_op<typename std::iterator_traits<InputIterator>::value_type>(),
+        typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type const k = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type>::max(),
+        typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type const min = 0,
+        unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type) * 8,
+        unsigned const d = 0)
     {
         typedef std::reverse_iterator<InputIterator> ReverseIterator;
-
+        
         if(first != last)
         {
             assert(r != 0);
@@ -69,13 +85,12 @@ namespace algorithm {
 
             // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
             for(; first != last; first++)
-                C[detail::count_index(*first, shift, min, bitmask)]++;
-
+                C[detail::count_index(conv(*first), shift, min, bitmask)]++;
             // Accumulate the counts in the temporary array.
             std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
 
             for(; rfirst != rlast; rfirst++)
-                *(result + --C[detail::count_index(*rfirst, shift, min, bitmask)]) = *rfirst;
+                *(result + --C[detail::count_index(conv(*rfirst), shift, min, bitmask)]) = *rfirst;
         }
     }
 

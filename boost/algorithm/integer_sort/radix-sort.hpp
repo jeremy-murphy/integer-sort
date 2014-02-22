@@ -56,7 +56,7 @@ namespace algorithm {
             assert(r * d >= b);
             
             if(d == 1)
-                stable_counting_sort(first, last, result, k, minimum);
+                stable_counting_sort(first, last, result, no_op<value_type>(), k, minimum);
             else
             {
                 std::vector<value_type> input(first, last);
@@ -65,15 +65,15 @@ namespace algorithm {
                 
                 if(d == 2)
                 {
-                    stable_counting_sort(first, last, input.begin(), dk, 0, r, 0);
-                    stable_counting_sort(input.begin(), input.end(), result, dk, 0, r, 1);
+                    stable_counting_sort(first, last, input.begin(), no_op<value_type>(), dk, 0, r, 0);
+                    stable_counting_sort(input.begin(), input.end(), result, no_op<value_type>(), dk, 0, r, 1);
                 }
                 else
                 {
                     std::vector<value_type> output(n);
                     for(unsigned i = 0; i < d; i++)
                     {
-                        stable_counting_sort(input.begin(), input.end(), output.begin(), dk, 0, r, i);
+                        stable_counting_sort(input.begin(), input.end(), output.begin(), no_op<value_type>(), dk, 0, r, i);
                         std::swap(input, output);
                     }
                     
