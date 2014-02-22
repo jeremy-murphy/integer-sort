@@ -59,23 +59,24 @@ namespace algorithm {
     * \c r The radix or width of digit to consider.
     * \c d Which digit to consider.
     */
-    template <typename InputIterator, typename OutputIterator, typename Conversion>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<InputIterator>))
-            ((Mutable_RandomAccessIterator<OutputIterator>))
-            ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type>)), 
+    template <typename Input, typename Output, typename Conversion>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
+            ((Mutable_RandomAccessIterator<Output>))
+            ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
-    stable_counting_sort(InputIterator first, InputIterator last, OutputIterator result, 
-        Conversion conv = no_op<typename std::iterator_traits<InputIterator>::value_type>(),
-        typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type const k = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type>::max(),
-        typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type const min = 0,
-        unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<InputIterator>::value_type)>::type) * 8,
+    stable_counting_sort(Input first, Input last, Output result, 
+        Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>(),
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const k = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min = 0,
+        unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8,
         unsigned const d = 0)
     {
-        typedef std::reverse_iterator<InputIterator> ReverseIterator;
+        typedef std::reverse_iterator<Input> ReverseIterator;
         
         if(first != last)
         {
             assert(r != 0);
+            // TODO: Maybe this next assertion should be an exception?
             assert(k - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
             unsigned const shift = r * d;
             uintmax_t const bitmask = (1ul << r) - 1;
