@@ -2,6 +2,10 @@
 //  Use, modification and distribution are subject to the 
 //  Boost Software License, Version 1.0. (See accompanying file 
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+/// \file radix-sort.hpp
+/// \brief Stable LSD radix sort.
+
 #ifndef RADIX_SORT
 #define RADIX_SORT
 
@@ -20,8 +24,15 @@ namespace algorithm {
      * \fn stable_radix_sort
      * \brief Stable LSD radix-sort that uses counting-sort.
      * 
-     * \c InputIterator 
-     * \param first ...
+     * \c Input Bidirectional input iterator.
+     * \c Output Random access output iterator.
+     * 
+     * \param first Input iterator that points to the first element of the unsorted data.
+     * \param last Input iterator that points past the last element of the unsorted data.
+     * \param result Output iterator that points to the first element where the sorted data will go.
+     * \param conv Function object that converts the input type to an unsigned integral type.
+     * \param k The largest value present in the input >> r * d.
+     * \param min The smallest value present in the input >> r * d.
      */
     template <typename Input, typename Output, typename Conversion>
     BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
@@ -36,6 +47,7 @@ namespace algorithm {
     {
         typedef typename std::iterator_traits<Input>::difference_type difference_type;
         typedef typename std::iterator_traits<Input>::value_type value_type;
+        typedef typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
         
         assert(k >= min);
         
@@ -61,7 +73,7 @@ namespace algorithm {
             else
             {
                 std::vector<value_type> tmp1(first, last);
-                value_type const dk = (value_type(1) << r) - 1; // TODO: This can be improved.
+                uint_type const dk = (uint_type(1) << r) - 1; // TODO: This can be improved.
                 // NOTE: Is there an easy way to utilize minimum here?
                 
                 if(d == 2)

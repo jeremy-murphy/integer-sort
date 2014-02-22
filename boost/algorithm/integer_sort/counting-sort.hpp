@@ -2,6 +2,11 @@
 //  Use, modification and distribution are subject to the 
 //  Boost Software License, Version 1.0. (See accompanying file 
 //  LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+/** \file counting-sort.hpp
+ *  \brief Stable counting sort.
+ */
+
 #ifndef COUNTING_SORT
 #define COUNTING_SORT
 
@@ -49,15 +54,17 @@ namespace algorithm {
     * 
     * @brief Generalized stable counting-sort.
     * 
-    * \c BidirectionalIterator Type of input iterator.
-    * \c OutputIterator Type of output iterator: only required to be forward.
+    * \c Input Bidirectional input iterator.
+    * \c Output Random access output iterator.
     * 
-    * \c first Input iterator that points to the first element of the unsorted data.
-    * \c last Input iterator that points past the last element of the unsorted data.
-    * \c result Output iterator that points to the first element where the sorted data will go.
-    * \c k The largest value present in the input >> r * d.
-    * \c r The radix or width of digit to consider.
-    * \c d Which digit to consider.
+    * \param first Input iterator that points to the first element of the unsorted data.
+    * \param last Input iterator that points past the last element of the unsorted data.
+    * \param result Output iterator that points to the first element where the sorted data will go.
+    * \param conv Function object that converts the input type to an unsigned integral type.
+    * \param k The largest value present in the input >> r * d.
+    * \param min The smallest value present in the input >> r * d.
+    * \param r The radix or width of digit to consider.
+    * \param d Which digit to consider.
     */
     template <typename Input, typename Output, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
