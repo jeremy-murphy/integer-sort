@@ -61,8 +61,8 @@ namespace algorithm {
     * \param last Input iterator that points past the last element of the unsorted data.
     * \param result Output iterator that points to the first element where the sorted data will go.
     * \param conv Function object that converts the input type to an unsigned integral type.
-    * \param k The largest value present in the input >> r * d.
     * \param min The smallest value present in the input >> r * d.
+    * \param max The largest value present in the input >> r * d.
     * \param r The radix or width of digit to consider.
     * \param d Which digit to consider.
     */
@@ -73,8 +73,8 @@ namespace algorithm {
                            (void))
     stable_counting_sort(Input first, Input last, Output result, 
         Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>(),
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const k = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
         typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min = 0,
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
         unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8,
         unsigned const d = 0)
     {
@@ -82,23 +82,30 @@ namespace algorithm {
         
         if(first != last)
         {
-            assert(r != 0);
-            // TODO: Maybe this next assertion should be an exception?
-            assert(k - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
-            unsigned const shift = r * d;
-            uintmax_t const bitmask = (1ul << r) - 1;
-            std::vector<uintmax_t> C(static_cast<uintmax_t>(k - min) + 1);
-            ReverseIterator rfirst(last);
-            ReverseIterator const rlast(first);
+            Input next(first);
+            next++;
+            if(next == last)
+                *result++ = *first;
+            else
+            {
+                assert(r != 0);
+                // TODO: Maybe this next assertion should be an exception?
+                assert(max - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
+                unsigned const shift = r * d;
+                uintmax_t const bitmask = (1ul << r) - 1;
+                std::vector<uintmax_t> C(static_cast<uintmax_t>(max - min) + 1);
+                ReverseIterator rfirst(last);
+                ReverseIterator const rlast(first);
 
-            // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
-            for(; first != last; first++)
-                C[detail::count_index(conv(*first), shift, min, bitmask)]++;
-            // Accumulate the counts in the temporary array.
-            std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
+                // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
+                for(; first != last; first++)
+                    C[detail::count_index(conv(*first), shift, min, bitmask)]++;
+                // Accumulate the counts in the temporary array.
+                std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
 
-            for(; rfirst != rlast; rfirst++)
-                *(result + --C[detail::count_index(conv(*rfirst), shift, min, bitmask)]) = *rfirst;
+                for(; rfirst != rlast; rfirst++)
+                    *(result + --C[detail::count_index(conv(*rfirst), shift, min, bitmask)]) = *rfirst;
+            }
         }
     }
 
@@ -107,32 +114,32 @@ namespace algorithm {
      * \brief Unstable in-place counting-sort.
      * 
      * Based on code from Rosetta Code downloaded July 2013
-     * This function will crash your machine if _k - _min is huge because it needs to allocate
-     * _k - _min * sizeof(uintmax_t) contiguous bytes.
-     * It is therefore recommended for use on data where _k - _min is relatively small.
+     * This function will crash your machine if max - min is huge because it 
+     * needs to allocate max - min * sizeof(uintmax_t) contiguous bytes.
+     * It is therefore recommended for use on data where max - min is relatively small.
      */
-    template <typename InputIterator>
-        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<InputIterator>))
-        ((UnsignedInteger<typename std::iterator_traits<InputIterator>::value_type>)), 
+    template <typename Input>
+        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
         (void))
-    counting_sort(InputIterator first, InputIterator last,
-                    typename std::iterator_traits<InputIterator>::value_type const k,
-                    typename std::iterator_traits<InputIterator>::value_type const min = 0) 
+    counting_sort(Input first, Input last,
+                typename std::iterator_traits<Input>::value_type const max,
+                typename std::iterator_traits<Input>::value_type const min = 0) 
     {
-        if(first != last && k > min)
+        assert(max >= min);
+        if(first != last && max > min)
         {
-            uintmax_t const nlen = ( k - min ) + 1;
-            assert(nlen != 0);
+            uintmax_t const nlen = ( max - min ) + 1;
             uintmax_t temp[nlen];
-            std::fill_n((uintmax_t*)(temp), nlen, uintmax_t());
-            for(InputIterator it(first); it != last; it++)
+            std::fill_n(temp, nlen, uintmax_t());
+            for(Input it(first); it != last; it++)
             {
                 assert(min <= *it);
-                assert(*it <= k);
+                assert(*it <= max);
                 temp[*it - min]++;
             }
 
-            for( uintmax_t i = min; i <= k; i++ )
+            for( uintmax_t i = min; i <= max; i++ )
                 while( temp[i - min]-- )
                     *(first++) = i;
         }

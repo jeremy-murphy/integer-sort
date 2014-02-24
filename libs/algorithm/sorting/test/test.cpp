@@ -40,22 +40,22 @@ struct fixture
 };
 
 
-template <typename T, typename U>
+template <typename T>
 struct foo
 {
     static mt19937 rng;
     T key;
-    // std::string s;
-    U d;
-    /*
+    std::string s;
     foo() : key(T()), s(std::string()) {}
     foo(T const &key, std::string const &s) : key(key), s(s) {}
     foo(T const &key, char const *s) : key(key), s(std::string(s)) {}
     foo(T const &key) : key(key), s("satellite") {}
-    */
+    /*
     // Although this particular foo is slower, it is better for testing.
     foo() : key(T()), d(rng()) {}
     foo(T const &key) : key(key), d(rng()) {}
+    U d;
+    */
     
     
     friend
@@ -68,7 +68,7 @@ struct foo
     friend
     bool operator==(foo const &a, foo const &b)
     {
-        return a.key == b.key && a.d == b.d;
+        return a.key == b.key && a.s == b.s;
     }
     
     
@@ -83,14 +83,14 @@ struct foo
     };
 };
 
-template <typename T, typename U>
-mt19937 foo<T, U>::rng = mt19937();
+template <typename T>
+mt19937 foo<T>::rng = mt19937();
 
 template <typename T, class Distribution>
-void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
+void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 5)
 {
     // typedef typename std::vector<T>::iterator iterator;
-    typedef foo<T, double> value_type;
+    typedef foo<T> value_type;
     typedef typename value_type::foo_key converter;
     typedef typename std::vector<value_type>::const_iterator const_iterator;
 
@@ -98,7 +98,7 @@ void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
     mt19937 rng(seed);
     converter const conv;
 
-    for(unsigned p = 1; p <= max10; p++)
+    for(unsigned p = 0; p <= max10; p++)
     {
         std::size_t const n(round(pow10(p)));
         std::vector<value_type> A;
@@ -111,19 +111,15 @@ void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
         std::cout.flush();
         std::vector<value_type> X(A);
         boost::timer::cpu_timer timer;
-        try {
-            stable_radix_sort(A.begin(), A.end(), B.begin(), conv, conv(*_max), conv(*_min));
-            boost::timer::cpu_times t1 = timer.elapsed();
-            std::stable_sort(X.begin(), X.end());
-            boost::timer::cpu_times t2 = timer.elapsed();
-            timer.stop();
-            if(t1.user + t1.system > 0 && t2.user + t2.system - t1.user - t1.system > 0)
-                std::cout << " " << static_cast<double>(t1.user + t1.system) / (static_cast<double>(t2.user + t2.system) - static_cast<double>(t1.user + t1.system));
-            std::cout << std::endl;
-            BOOST_CHECK(X == B);
-        } catch (std::bad_alloc) {
-            
-        }
+        stable_radix_sort(A.begin(), A.end(), B.begin(), conv);
+        boost::timer::cpu_times t1 = timer.elapsed();
+        std::stable_sort(X.begin(), X.end());
+        boost::timer::cpu_times t2 = timer.elapsed();
+        timer.stop();
+        if(t1.user + t1.system > 0 && t2.user + t2.system - t1.user - t1.system > 0)
+            std::cout << " " << static_cast<double>(t1.user + t1.system) / (static_cast<double>(t2.user + t2.system) - static_cast<double>(t1.user + t1.system));
+        std::cout << std::endl;
+        BOOST_CHECK(X == B);
     }
 }
 
