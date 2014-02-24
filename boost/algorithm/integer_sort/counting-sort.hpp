@@ -68,7 +68,7 @@ namespace algorithm {
     */
     template <typename Input, typename Output, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-            ((Mutable_RandomAccessIterator<Output>))
+            // ((Mutable_RandomAccessIterator<Output>))
             ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
     stable_counting_sort(Input first, Input last, Output result, 
@@ -96,6 +96,8 @@ namespace algorithm {
                 std::vector<uintmax_t> C(static_cast<uintmax_t>(max - min) + 1);
                 ReverseIterator rfirst(last);
                 ReverseIterator const rlast(first);
+                
+                assert(std::distance(first, last) == std::distance(rfirst, rlast));
 
                 // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
                 for(; first != last; first++)
@@ -104,7 +106,10 @@ namespace algorithm {
                 std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
 
                 for(; rfirst != rlast; rfirst++)
-                    *(result + --C[detail::count_index(conv(*rfirst), shift, min, bitmask)]) = *rfirst;
+                {
+                    std::size_t const offset = --C[detail::count_index(conv(*rfirst), shift, min, bitmask)];
+                    *(result + offset) = *rfirst;
+                }
             }
         }
     }

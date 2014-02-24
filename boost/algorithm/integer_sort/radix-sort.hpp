@@ -11,6 +11,7 @@
 
 #include <boost/algorithm/integer_sort/counting-sort.hpp>
 #include <boost/algorithm/minmax_element.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 
 #include <iterator>
 #include <cmath>
@@ -27,6 +28,52 @@
 
 namespace boost {
 namespace algorithm {
+    
+    namespace detail
+    {
+        template <class OutputIterator, class Tp>
+        class ra_raw_storage_iterator
+        // : public std::iterator<std::random_access_iterator_tag, Tp>
+        : public boost::iterator_facade<ra_raw_storage_iterator<OutputIterator, Tp>, Tp, random_access_traversal_tag>
+        {
+            friend class boost::iterator_core_access;
+            
+            Tp& dereference() const { return *M_iter; }
+            
+            bool equal(ra_raw_storage_iterator const &other) const
+            {
+                return M_iter == other.M_iter;
+            }
+            
+            void increment() { ++M_iter; }
+            void decrement() { --M_iter; }
+            
+            void advance(ssize_t n) { M_iter += n; }
+            
+            ptrdiff_t distance_to(ra_raw_storage_iterator const &z) { return z.M_iter - M_iter; }
+        protected:
+            OutputIterator M_iter;
+            
+        public:
+            explicit
+            ra_raw_storage_iterator(OutputIterator x) : M_iter(x) {}
+            
+            /*
+            ra_raw_storage_iterator&
+            operator*() { return *this; }
+            */
+            
+            ra_raw_storage_iterator&
+            operator=(const Tp& element)
+            {
+                // std::_Construct(addressof(*M_iter), element);
+                ::new(addressof(*M_iter)) Tp(element);
+                return *this;
+            }
+        };
+    }
+    
+    
     /**
      * \fn stable_radix_sort
      * \brief Stable LSD radix-sort that uses counting-sort.
@@ -53,6 +100,7 @@ namespace algorithm {
     {
         typedef typename std::iterator_traits<Input>::value_type value_type;
         typedef typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
+        typedef typename std::iterator_traits<Input>::difference_type difference_type;
         
         if(first != last)
         {
@@ -73,26 +121,48 @@ namespace algorithm {
                     stable_counting_sort(first, last, result, conv, min, max);
                 else
                 {
-                    std::vector<value_type> tmp1(first, last);
+                    difference_type const n = std::distance(first, last);
+                    // std::vector<value_type> tmp1(first, last);
+                    std::pair<value_type *, std::ptrdiff_t> p = std::get_temporary_buffer<value_type>(n);
+                    if(p.second != n)
+                        throw std::bad_alloc();
+                    value_type *tmp1 = p.first;
                     uint_type const dk = (uint_type(1) << radix) - 1; // TODO: This can be improved.
                     // NOTE: Is there an easy way to utilize minimum here?
                     
+                    detail::ra_raw_storage_iterator<value_type *, value_type> begin1(tmp1);
+                    
                     if(digits == 2)
                     {
-                        stable_counting_sort(first, last, tmp1.begin(), conv, 0, dk, radix, 0);
-                        stable_counting_sort(tmp1.begin(), tmp1.end(), result, conv, 0, dk, radix, 1);
+                        stable_counting_sort(first, last, begin1, conv, 0, dk, radix, 0);
+                        stable_counting_sort(tmp1, tmp1 + n, result, conv, 0, dk, radix, 1);
                     }
                     else
                     {
-                        std::vector<value_type> tmp2(tmp1.size());
+                        std::pair<value_type *, std::ptrdiff_t> q = std::get_temporary_buffer<value_type>(n);
+                        if(q.second != n)
+                            throw std::bad_alloc();
+                        value_type *tmp2 = q.first;
+                        uint_type const dk = (uint_type(1) << radix) - 1; // TODO: This can be improved.
+                        // NOTE: Is there an easy way to utilize minimum here?
+                        
+                        detail::ra_raw_storage_iterator<value_type *, value_type> begin2(tmp2);
                         for(unsigned i = 0; i < digits; i++)
                         {
-                            stable_counting_sort(tmp1.begin(), tmp1.end(), tmp2.begin(), conv, 0, dk, radix, i);
+                            stable_counting_sort(tmp1, tmp1 + n, begin2, conv, 0, dk, radix, i);
                             std::swap(tmp1, tmp2);
                         }
                         
-                        std::copy(tmp1.begin(), tmp1.end(), result);
+                        // std::for_each(tmp2, tmp2 + n, std::mem_fun_ref(&value_type::~value_type));
+                        for(difference_type i = 0; i < n; ++i)
+                            tmp2[i].~value_type();
+                        std::return_temporary_buffer(tmp2);
+                        std::copy(tmp1, tmp1 + n, result);
                     }
+                    
+                    for(difference_type i = 0; i < n; ++i)
+                        tmp1[i].~value_type();
+                    std::return_temporary_buffer(tmp1);
                 }
             }
         }

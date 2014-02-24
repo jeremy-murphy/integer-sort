@@ -50,6 +50,7 @@ struct foo
     foo(T const &key, std::string const &s) : key(key), s(s) {}
     foo(T const &key, char const *s) : key(key), s(std::string(s)) {}
     foo(T const &key) : key(key), s("satellite") {}
+    
     /*
     // Although this particular foo is slower, it is better for testing.
     foo() : key(T()), d(rng()) {}
@@ -76,6 +77,8 @@ struct foo
     {
         typedef T result_type;
         
+        foo_key() {}
+        
         T operator()(foo const &x) const
         {
             return x.key;
@@ -90,8 +93,8 @@ template <typename T, class Distribution>
 void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 5)
 {
     // typedef typename std::vector<T>::iterator iterator;
-    typedef foo<T> value_type;
-    typedef typename value_type::foo_key converter;
+    typedef T value_type;
+    typedef no_op<T> converter;
     typedef typename std::vector<value_type>::const_iterator const_iterator;
 
     std::cout << "=== Test (seed = " << seed << ", T = " << typeid(T).name() << "). ===" << std::endl;
