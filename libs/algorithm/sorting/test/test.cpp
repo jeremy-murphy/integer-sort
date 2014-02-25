@@ -114,7 +114,7 @@ void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
         std::cout.flush();
         std::vector<value_type> X(A);
         boost::timer::cpu_timer timer;
-        stable_radix_sort(A.begin(), A.end(), B.begin(), conv);
+        stable_radix_sort(A.begin(), A.end(), B.begin(), conv, conv(*_min), conv(*_max));
         boost::timer::cpu_times t1 = timer.elapsed();
         std::stable_sort(X.begin(), X.end());
         boost::timer::cpu_times t2 = timer.elapsed();
