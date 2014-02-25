@@ -90,7 +90,7 @@ template <typename T>
 mt19937 foo<T>::rng = mt19937();
 
 template <typename T, class Distribution>
-void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 5)
+void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
 {
     // typedef typename std::vector<T>::iterator iterator;
     typedef T value_type;

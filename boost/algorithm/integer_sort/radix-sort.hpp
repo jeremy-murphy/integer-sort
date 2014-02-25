@@ -71,6 +71,17 @@ namespace algorithm {
                 return *this;
             }
         };
+        
+        
+        template <typename T>
+        struct destroy
+        {
+            destroy() {}
+            void operator()(T &x) const
+            {
+                x.~T();
+            }
+        };
     }
     
     
@@ -122,7 +133,6 @@ namespace algorithm {
                 else
                 {
                     difference_type const n = std::distance(first, last);
-                    // std::vector<value_type> tmp1(first, last);
                     std::pair<value_type *, std::ptrdiff_t> p = std::get_temporary_buffer<value_type>(n);
                     if(p.second != n)
                         throw std::bad_alloc();
@@ -145,17 +155,16 @@ namespace algorithm {
                         value_type *tmp2 = q.first;
                         uint_type const dk = (uint_type(1) << radix) - 1; // TODO: This can be improved.
                         // NOTE: Is there an easy way to utilize minimum here?
+                        stable_counting_sort(first, last, begin1, conv, 0, dk, radix, 0);
                         
-                        detail::ra_raw_storage_iterator<value_type *, value_type> begin2(tmp2);
-                        for(unsigned i = 0; i < digits; i++)
+                        for(unsigned i = 1; i < digits; i++)
                         {
+                            detail::ra_raw_storage_iterator<value_type *, value_type> begin2(tmp2);
                             stable_counting_sort(tmp1, tmp1 + n, begin2, conv, 0, dk, radix, i);
                             std::swap(tmp1, tmp2);
+                            std::for_each(tmp2, tmp2 + n, detail::destroy<value_type>());
                         }
                         
-                        // std::for_each(tmp2, tmp2 + n, std::mem_fun_ref(&value_type::~value_type));
-                        for(difference_type i = 0; i < n; ++i)
-                            tmp2[i].~value_type();
                         std::return_temporary_buffer(tmp2);
                         std::copy(tmp1, tmp1 + n, result);
                     }
