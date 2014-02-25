@@ -87,11 +87,11 @@ template <typename T>
 mt19937 foo<T>::rng = mt19937();
 
 template <typename T, class Distribution>
-void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 5)
+void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
 {
     // typedef typename std::vector<T>::iterator iterator;
-    typedef foo<T> value_type;
-    typedef typename value_type::foo_key converter;
+    typedef T value_type;
+    typedef no_op<T> converter;
     typedef typename std::vector<value_type>::const_iterator const_iterator;
 
     std::cout << "=== Test (seed = " << seed << ", T = " << typeid(T).name() << "). ===" << std::endl;
@@ -111,7 +111,7 @@ void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 5)
         std::cout.flush();
         std::vector<value_type> X(A);
         boost::timer::cpu_timer timer;
-        stable_radix_sort(A.begin(), A.end(), B.begin(), conv);
+        stable_radix_sort(A.begin(), A.end(), B.begin(), conv, conv(*_min), conv(*_max));
         boost::timer::cpu_times t1 = timer.elapsed();
         std::stable_sort(X.begin(), X.end());
         boost::timer::cpu_times t2 = timer.elapsed();
