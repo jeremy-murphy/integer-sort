@@ -68,7 +68,7 @@ namespace algorithm {
     */
     template <typename Input, typename Output, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-            // ((Mutable_RandomAccessIterator<Output>))
+            ((Mutable_RandomAccessIterator<Output>))
             ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
     stable_counting_sort(Input first, Input last, Output result, 
