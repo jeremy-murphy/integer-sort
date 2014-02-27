@@ -11,7 +11,7 @@
 #define COUNTING_SORT
 
 #include <iterator>
-#include <algorithm>
+#include <numeric>
 #include <cassert>
 #include <limits>
 #include <functional>
@@ -100,8 +100,8 @@ namespace algorithm {
                 // TODO: Could this be done faster by left-shifting _min and _bitmask once instead of right-shifting the value n times?
                 for(; first != last; first++)
                     C[detail::count_index(conv(*first), shift, min, bitmask)]++;
-                // Accumulate the counts in the temporary array.
-                std::transform(C.begin() + 1, C.end(), C.begin(), C.begin() + 1, std::plus<uintmax_t>());
+
+                std::partial_sum(C.begin(), C.end(), C.begin());
 
                 for(; rfirst != rlast; rfirst++)
                     *(result + --C[detail::count_index(conv(*rfirst), shift, min, bitmask)]) = *rfirst;
