@@ -31,14 +31,13 @@ namespace algorithm {
     
     namespace detail
     {
-        template <class OutputIterator, class Tp>
+        template <class T>
         class ra_raw_storage_iterator
-        // : public std::iterator<std::random_access_iterator_tag, Tp>
-        : public boost::iterator_facade<ra_raw_storage_iterator<OutputIterator, Tp>, Tp, random_access_traversal_tag>
+        : public boost::iterator_facade<ra_raw_storage_iterator<T>, T, random_access_traversal_tag>
         {
             friend class boost::iterator_core_access;
             
-            Tp& dereference() const { return *M_iter; }
+            T& dereference() const { return *M_iter; }
             
             bool equal(ra_raw_storage_iterator const &other) const
             {
@@ -50,24 +49,29 @@ namespace algorithm {
             
             void advance(ssize_t n) { M_iter += n; }
             
-            ptrdiff_t distance_to(ra_raw_storage_iterator const &z) { return z.M_iter - M_iter; }
+            std::ptrdiff_t distance_to(ra_raw_storage_iterator const &z) const { return z.M_iter - M_iter; }
+            
+            struct enabler {};
         protected:
-            OutputIterator M_iter;
+            T * M_iter;
             
         public:
             explicit
-            ra_raw_storage_iterator(OutputIterator x) : M_iter(x) {}
-            
+            ra_raw_storage_iterator(T * x) : M_iter(x) {}
+
+            template <typename U>
+            ra_raw_storage_iterator(ra_raw_storage_iterator<U> const &other, typename enable_if<is_convertible<U*, T*>, enabler>::type = enabler()) : M_iter() {}
+
             /*
             ra_raw_storage_iterator&
             operator*() { return *this; }
             */
             
             ra_raw_storage_iterator&
-            operator=(const Tp& element)
+            operator=(const T& element)
             {
                 // std::_Construct(addressof(*M_iter), element);
-                ::new(addressof(*M_iter)) Tp(element);
+                ::new(static_cast<void *>(addressof(*M_iter))) T(element);
                 return *this;
             }
         };
@@ -140,7 +144,7 @@ namespace algorithm {
                     uint_type const dk = (uint_type(1) << radix) - 1; // TODO: This can be improved.
                     // NOTE: Is there an easy way to utilize minimum here?
                     
-                    detail::ra_raw_storage_iterator<value_type *, value_type> begin1(tmp1);
+                    detail::ra_raw_storage_iterator<value_type> begin1(tmp1);
                     
                     if(digits == 2)
                     {
@@ -159,7 +163,7 @@ namespace algorithm {
                         
                         for(unsigned i = 1; i < digits; i++)
                         {
-                            detail::ra_raw_storage_iterator<value_type *, value_type> begin2(tmp2);
+                            detail::ra_raw_storage_iterator<value_type> begin2(tmp2);
                             stable_counting_sort(tmp1, tmp1 + n, begin2, conv, 0, dk, radix, i);
                             std::swap(tmp1, tmp2);
                             std::for_each(tmp2, tmp2 + n, detail::destroy<value_type>());
@@ -169,8 +173,7 @@ namespace algorithm {
                         std::copy(tmp1, tmp1 + n, result);
                     }
                     
-                    for(difference_type i = 0; i < n; ++i)
-                        tmp1[i].~value_type();
+                    std::for_each(tmp1, tmp1 + n, detail::destroy<value_type>());
                     std::return_temporary_buffer(tmp1);
                 }
             }
