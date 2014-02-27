@@ -41,60 +41,48 @@ struct fixture
 
 
 template <typename T>
-struct foo
+struct singleton
 {
-    static mt19937 rng;
-    T key;
+    T value;
     std::string s;
-    foo() : key(T()), s(std::string()) {}
-    foo(T const &key, std::string const &s) : key(key), s(s) {}
-    foo(T const &key, char const *s) : key(key), s(std::string(s)) {}
-    foo(T const &key) : key(key), s("satellite") {}
     
-    /*
-    // Although this particular foo is slower, it is better for testing.
-    foo() : key(T()), d(rng()) {}
-    foo(T const &key) : key(key), d(rng()) {}
-    U d;
-    */
-    
+    singleton() : value(T()), s(std::string()) {}
+    singleton(T const &x) : value(x), s(std::string()) {}
     
     friend
-    bool operator<(foo const &a, foo const b)
+    bool operator<(singleton const &a, singleton const b)
     {
-        return a.key < b.key;
+        return a.value < b.value;
     }
     
     
     friend
-    bool operator==(foo const &a, foo const &b)
+    bool operator==(singleton const &a, singleton const &b)
     {
-        return a.key == b.key && a.s == b.s;
+        return a.value == b.value;
     }
     
     
-    struct foo_key
+    struct singleton_key
     {
         typedef T result_type;
         
-        foo_key() {}
+        singleton_key() {}
         
-        T operator()(foo const &x) const
+        T operator()(singleton const &x) const
         {
-            return x.key;
+            return x.value;
         }
     };
 };
 
-template <typename T>
-mt19937 foo<T>::rng = mt19937();
 
 template <typename T, class Distribution>
 void test(Distribution dist, unsigned const seed = 0, unsigned const max10 = 7)
 {
     // typedef typename std::vector<T>::iterator iterator;
-    typedef T value_type;
-    typedef no_op<T> converter;
+    typedef singleton<T> value_type;
+    typedef typename value_type::singleton_key converter;
     typedef typename std::vector<value_type>::const_iterator const_iterator;
 
     std::cout << "=== Test (seed = " << seed << ", T = " << typeid(T).name() << "). ===" << std::endl;
