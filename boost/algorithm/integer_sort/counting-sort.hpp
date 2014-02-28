@@ -23,7 +23,7 @@
 #include <boost/static_assert.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/utility/result_of.hpp>
-
+#include <boost/algorithm/minmax_element.hpp>
 
 namespace boost {
 namespace algorithm {
@@ -113,25 +113,27 @@ namespace algorithm {
     /**
      * \brief Unstable in-place counting-sort.
      * 
+     * \param first Input iterator that points to the first element of the unsorted data.
+     * \param last Input iterator that points past the last element of the unsorted data.
+     * \param min The smallest value present in the input >> r * d.
+     * \param max The largest value present in the input >> r * d.
+     * 
      * Based on code from Rosetta Code downloaded July 2013
-     * This function will crash your machine if max - min is huge because it 
-     * needs to allocate max - min * sizeof(uintmax_t) contiguous bytes.
-     * It is therefore recommended for use on data where max - min is relatively small.
+     * It is recommended for use on data where max - min is relatively small.
      */
     template <typename Input>
         BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
         ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
         (void))
     counting_sort(Input first, Input last,
-                typename std::iterator_traits<Input>::value_type const max,
-                typename std::iterator_traits<Input>::value_type const min = 0) 
+                typename std::iterator_traits<Input>::value_type const min,
+                typename std::iterator_traits<Input>::value_type const max)
     {
         assert(max >= min);
-        if(first != last && max > min)
+        if(first != last && ++Input(first) != last && min < max)
         {
             uintmax_t const nlen = ( max - min ) + 1;
-            uintmax_t temp[nlen];
-            std::fill_n(temp, nlen, uintmax_t());
+            uintmax_t * const temp = new uintmax_t[nlen];
             for(Input it(first); it != last; it++)
             {
                 assert(min <= *it);
@@ -142,6 +144,27 @@ namespace algorithm {
             for( uintmax_t i = min; i <= max; i++ )
                 while( temp[i - min]-- )
                     *(first++) = i;
+            delete [] temp;
+        }
+    }
+    
+    
+    /**
+     * \brief Unstable in-place counting-sort.
+     * 
+     * \param first Input iterator that points to the first element of the unsorted data.
+     * \param last Input iterator that points past the last element of the unsorted data.
+     */
+    template <typename Input>
+        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
+                           (void))
+    counting_sort(Input first, Input last)
+    {
+        if(first != last && ++Input(first) != last)
+        {
+            std::pair<Input, Input> bound = minmax_element(first, last);
+            return counting_sort(first, last, *bound.first, *bound.second);
         }
     }
 }
