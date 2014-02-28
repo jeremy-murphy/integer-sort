@@ -75,8 +75,8 @@ namespace algorithm {
         Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>(),
         typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min = 0,
         typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
-        unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8,
-        unsigned const d = 0)
+        unsigned const radix = sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8,
+        unsigned const digits = 0)
     {
         typedef std::reverse_iterator<Input> ReverseIterator;
         
@@ -88,11 +88,11 @@ namespace algorithm {
                 *result++ = *first;
             else
             {
-                assert(r != 0);
+                assert(radix != 0);
                 // TODO: Maybe this next assertion should be an exception?
                 assert(max - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
-                unsigned const shift = r * d;
-                uintmax_t const bitmask = (1ul << r) - 1;
+                unsigned const shift = radix * digits;
+                uintmax_t const bitmask = (1ul << radix) - 1;
                 std::vector<uintmax_t> C(static_cast<uintmax_t>(max - min) + 1);
                 ReverseIterator rfirst(last);
                 ReverseIterator const rlast(first);
