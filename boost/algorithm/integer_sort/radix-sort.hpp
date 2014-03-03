@@ -121,9 +121,7 @@ namespace algorithm {
         {
             assert(max >= min);
             
-            Input next(first);
-            next++;
-            if(next == last)
+            if(++Input(first) == last)
                 *result++ = *first;
             else
             {

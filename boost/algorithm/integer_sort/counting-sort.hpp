@@ -23,6 +23,8 @@
 #include <boost/static_assert.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/utility/result_of.hpp>
+#include <boost/algorithm/minmax_element.hpp>
+#include <boost/scoped_array.hpp>
 
 
 namespace boost {
@@ -68,31 +70,27 @@ namespace algorithm {
     */
     template <typename Input, typename Output, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-            ((Mutable_RandomAccessIterator<Output>))
-            ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
-                           (void))
-    stable_counting_sort(Input first, Input last, Output result, 
-        Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>(),
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min = 0,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max = std::numeric_limits<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>::max(),
-        unsigned const r = sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8,
-        unsigned const d = 0)
+        ((Mutable_RandomAccessIterator<Output>))
+        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+                        (void))
+    stable_counting_sort(Input first, Input last, Output result, Conversion conv,
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max,
+        unsigned const radix, unsigned char const digit)
     {
         typedef std::reverse_iterator<Input> ReverseIterator;
         
         if(first != last)
         {
-            Input next(first);
-            next++;
-            if(next == last)
+            if(++Input(first) == last)
                 *result++ = *first;
             else
             {
-                assert(r != 0);
+                assert(radix != 0);
                 // TODO: Maybe this next assertion should be an exception?
                 assert(max - min != std::numeric_limits<uintmax_t>::max()); // Because otherwise k - min + 1 == 0.
-                unsigned const shift = r * d;
-                uintmax_t const bitmask = (1ul << r) - 1;
+                unsigned const shift = radix * digit;
+                uintmax_t const bitmask = (1ul << radix) - 1;
                 std::vector<uintmax_t> C(static_cast<uintmax_t>(max - min) + 1);
                 ReverseIterator rfirst(last);
                 ReverseIterator const rlast(first);
@@ -115,28 +113,57 @@ namespace algorithm {
     }
 
     
+    template <typename Input, typename Output, typename Conversion>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
+        ((Mutable_RandomAccessIterator<Output>))
+        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+                           (void))
+    stable_counting_sort(Input first, Input last, Output result, Conversion conv,
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max)
+    {
+        unsigned const radix(sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8);
+        return stable_counting_sort(first, last, result, conv, min, max, radix, 0);
+    }
+    
+    
+    template <typename Input, typename Output, typename Conversion>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
+        ((Mutable_RandomAccessIterator<Output>))
+        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+                           (void))
+    stable_counting_sort(Input first, Input last, Output result, 
+                         Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>())
+    {
+        std::pair<Input, Input> const bound(minmax_element(first, last));
+        return stable_counting_sort(first, last, result, conv, *bound.first, *bound.second);
+    }
+    
+    
     /**
      * \brief Unstable in-place counting-sort.
      * 
+     * \param first Input iterator that points to the first element of the unsorted data.
+     * \param last Input iterator that points past the last element of the unsorted data.
+     * \param min The smallest value present in the input >> r * d.
+     * \param max The largest value present in the input >> r * d.
+     * 
      * Based on code from Rosetta Code downloaded July 2013
-     * This function will crash your machine if max - min is huge because it 
-     * needs to allocate max - min * sizeof(uintmax_t) contiguous bytes.
-     * It is therefore recommended for use on data where max - min is relatively small.
+     * It is recommended for use on data where max - min is relatively small.
      */
     template <typename Input>
         BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
         ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
         (void))
     counting_sort(Input first, Input last,
-                typename std::iterator_traits<Input>::value_type const max,
-                typename std::iterator_traits<Input>::value_type const min = 0) 
+                typename std::iterator_traits<Input>::value_type const min,
+                typename std::iterator_traits<Input>::value_type const max)
     {
         assert(max >= min);
-        if(first != last && max > min)
+        if(first != last && ++Input(first) != last && min < max)
         {
             uintmax_t const nlen = ( max - min ) + 1;
-            uintmax_t temp[nlen];
-            std::fill_n(temp, nlen, uintmax_t());
+            scoped_array<uintmax_t> temp(new uintmax_t[nlen]);
             for(Input it(first); it != last; it++)
             {
                 assert(min <= *it);
@@ -148,6 +175,23 @@ namespace algorithm {
                 while( temp[i - min]-- )
                     *(first++) = i;
         }
+    }
+    
+    
+    /**
+     * \brief Unstable in-place counting-sort.
+     * 
+     * \param first Input iterator that points to the first element of the unsorted data.
+     * \param last Input iterator that points past the last element of the unsorted data.
+     */
+    template <typename Input>
+        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
+                           (void))
+    counting_sort(Input first, Input last)
+    {
+        std::pair<Input, Input> const bound(minmax_element(first, last));
+        return counting_sort(first, last, *bound.first, *bound.second);
     }
 }
 }
