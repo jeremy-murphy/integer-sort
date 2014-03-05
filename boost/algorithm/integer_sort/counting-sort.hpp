@@ -160,20 +160,26 @@ namespace algorithm {
                 typename std::iterator_traits<Input>::value_type const max)
     {
         assert(max >= min);
-        if(first != last && ++Input(first) != last && min < max)
+        if(first != last)
         {
-            uintmax_t const nlen = ( max - min ) + 1;
-            scoped_array<uintmax_t> temp(new uintmax_t[nlen]);
-            for(Input it(first); it != last; it++)
+            Input next(first);
+            ++next;
+            if(next != last && min < max)
             {
-                assert(min <= *it);
-                assert(*it <= max);
-                temp[*it - min]++;
-            }
+                uintmax_t const nlen = ( max - min ) + 1;
+                scoped_array<uintmax_t> temp(new uintmax_t[nlen]);
+                std::fill_n(&temp[0], nlen, 0);
+                for(Input it(first); it != last; ++it)
+                {
+                    assert(min <= *it);
+                    assert(*it <= max);
+                    temp[*it - min]++;
+                }
 
-            for( uintmax_t i = min; i <= max; i++ )
-                while( temp[i - min]-- )
-                    *(first++) = i;
+                for( uintmax_t i = min; i <= max; i++ )
+                    while( temp[i - min]-- )
+                        *(first++) = i;
+            }
         }
     }
     
@@ -190,8 +196,11 @@ namespace algorithm {
                            (void))
     counting_sort(Input first, Input last)
     {
-        std::pair<Input, Input> const bound(minmax_element(first, last));
-        return counting_sort(first, last, *bound.first, *bound.second);
+        if(first != last)
+        {
+            std::pair<Input, Input> const bound(minmax_element(first, last));
+            return counting_sort(first, last, *bound.first, *bound.second);
+        }
     }
 }
 }
