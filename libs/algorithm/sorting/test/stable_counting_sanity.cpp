@@ -38,16 +38,16 @@ struct count_one
     
     count_one()
     {
-        result.push_back(9);
+        result.resize(1);
     }
     
     template <typename Container>
-    void operator()(Container c)
+    void operator()(Container)
     {
-        c.push_back(0);
-        stable_counting_sort(c.begin(), c.end(), result.begin());
-        BOOST_CHECK_EQUAL(result.back(), 0);
         result[0] = 9;
+        Container const c(1, 0);
+        stable_counting_sort(c.begin(), c.end(), result.begin());
+        BOOST_CHECK(std::equal(result.begin(), result.end(), c.begin()));
     }
 };
 
