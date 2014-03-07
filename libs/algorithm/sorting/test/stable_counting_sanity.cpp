@@ -51,39 +51,49 @@ struct count_one
     }
 };
 
+
 /* n == 1 is a special case; fundamentally, there is no problem, the data is 
  * already in order.
  */
 BOOST_AUTO_TEST_CASE_TEMPLATE(n_equals_one, T, all_unsigned_types)
 {
-    typedef typename boost::mpl::transform<boost::mpl::list< std::vector<boost::mpl::_1>, std::deque<boost::mpl::_1>, std::list<boost::mpl::_1> >, boost::mpl::apply1<boost::mpl::_1, T> >::type test_containers;
-    boost::mpl::for_each<test_containers>(count_one<T>());
+    typedef typename boost::mpl::transform<boost::mpl::list< std::vector<boost::mpl::_1>, std::deque<boost::mpl::_1>, std::list<boost::mpl::_1> >, boost::mpl::apply1<boost::mpl::_1, T> >::type sequence_containers;
+    boost::mpl::for_each<sequence_containers>(count_one<T>());
 }
+
+
+template <typename T>
+class one_1000_foo
+{
+private:
+    std::vector<T> input;
+    std::vector<T> result;
+    
+public:
+    one_1000_foo(std::vector<T> const &input) : input(input)
+    {
+        result.resize(input.size());
+    }
+    
+    template <typename Container>
+    void operator()(Container)
+    {
+        std::fill(result.begin(), result.end(), 9);
+        Container const c(input.begin(), input.end());
+        stable_counting_sort(c.begin(), c.end(), result.begin());
+        BOOST_CHECK(std::equal(c.begin(), c.end(), result.begin()));
+    }
+};
 
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(one_1000, T, all_unsigned_types)
 {
-    unsigned int const n = 1000;
-    
-    std::vector<T> result(n, 9);
-    std::list<T> const tmp_list(n, 1);
-    stable_counting_sort(tmp_list.begin(), tmp_list.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_list.begin(), tmp_list.end(), result.begin()));
+    typedef typename boost::mpl::transform<boost::mpl::list< std::vector<boost::mpl::_1>, std::deque<boost::mpl::_1>, std::list<boost::mpl::_1> >, boost::mpl::apply1<boost::mpl::_1, T> >::type test_containers;
 
-    std::vector<T> const tmp_vector(n, 1);
-    std::fill_n(result.begin(), n, 9);
-    stable_counting_sort(tmp_vector.begin(), tmp_vector.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_vector.begin(), tmp_vector.end(), result.begin()));
+    unsigned int const n = 1000;
+    std::vector<T> const input(n, 1);
     
-    std::deque<T> const tmp_deque(n, 1);
-    std::fill_n(result.begin(), n, 9);
-    stable_counting_sort(tmp_deque.begin(), tmp_deque.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_deque.begin(), tmp_deque.end(), result.begin()));
-    
-    std::set<T> const tmp_set(result.begin(), result.end());
-    std::fill_n(result.begin(), n, 9);
-    stable_counting_sort(tmp_set.begin(), tmp_set.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_set.begin(), tmp_set.end(), result.begin()));
+    boost::mpl::for_each<test_containers>(one_1000_foo<T>(input));
 }
 
 
