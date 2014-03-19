@@ -122,11 +122,21 @@ namespace algorithm {
         ((Mutable_RandomAccessIterator<Output>))
         ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                             (void))
-    stable_radix_sort(Input first, Input last, Output result, 
-        Conversion conv = no_op<typename std::iterator_traits<Input>::value_type>())
+    stable_radix_sort(Input first, Input last, Output result, Conversion conv)
     {
         std::pair<Input, Input> const bounds = minmax_element(first, last);
         return stable_radix_sort(first, last, result, conv, conv(*bounds.first), conv(*bounds.second));
+    }
+
+    
+    template <typename Input, typename Output>
+        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
+        ((Mutable_RandomAccessIterator<Output>))
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type)), 
+                           (void))
+    stable_radix_sort(Input first, Input last, Output result)
+    {
+        return stable_radix_sort(first, last, result, no_op<typename std::iterator_traits<Input>::value_type>());
     }
 }
 }
