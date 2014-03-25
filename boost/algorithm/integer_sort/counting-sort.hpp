@@ -43,6 +43,8 @@ namespace algorithm {
     struct no_op
     {
         typedef T result_type;
+        
+        no_op() {}
 
         T const &operator()(T const &x) const
         {
@@ -133,7 +135,7 @@ namespace algorithm {
     {
         if(first != last)
         {
-            std::pair<Input, Input> const bound(minmax_element(first, last));
+            std::pair<Input, Input> const bound(boost::minmax_element(first, last));
             return stable_counting_sort(first, last, result, conv, *bound.first, *bound.second);
         }
     }
@@ -207,7 +209,7 @@ namespace algorithm {
     {
         if(first != last)
         {
-            std::pair<Input, Input> const bound(minmax_element(first, last));
+            std::pair<Input, Input> const bound(boost::minmax_element(first, last));
             return counting_sort(first, last, *bound.first, *bound.second);
         }
     }

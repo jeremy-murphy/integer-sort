@@ -124,7 +124,7 @@ namespace algorithm {
                             (void))
     stable_radix_sort(Input first, Input last, Output result, Conversion conv)
     {
-        std::pair<Input, Input> const bounds = minmax_element(first, last);
+        std::pair<Input, Input> const bounds(boost::minmax_element(first, last));
         return stable_radix_sort(first, last, result, conv, conv(*bounds.first), conv(*bounds.second));
     }
 
