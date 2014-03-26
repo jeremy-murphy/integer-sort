@@ -1,0 +1,133 @@
+[/
+ / Copyright (C) 2014 Jeremy W. Murphy
+ / 
+ / Distributed under the Boost Software License, Version 1.0. (See accompanying
+ / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ /]
+ 
+[library Boost.Algorithm
+    [quickbook 1.4]
+    [authors [Murphy, Jeremy W.]]
+    [copyright 2014 Jeremy W. Murphy]
+    [/id ?]
+    [/dirname ?]
+    [license
+        Distributed under the Boost Software License, Version 1.0.
+        (See accompanying file LICENSE_1_0.txt or copy at
+        [@http://www.boost.org/LICENSE_1_0.txt])
+    ]
+]
+
+
+[section:sorting Sorting Algorithms]
+
+    [section:counting Counting sort]
+
+        [section:counting_overview Overview]
+
+            Counting sort is an algorithm to sort unsigned integer types by counting the occurence of each value (instead of using < to compare them).
+
+            [
+            / Counts are stored in an array indexed by the value.  
+            / The partial sum of the array of counts is calculated, calculating the right-most index of each value / in the output.
+            / Values are then read from the end of the input, storing each in its position calculated from the array, which is decremented at each step.
+            / It is limited to sorting types that can be projected in order onto an unsigned integral type.
+            ]
+
+        [endsect]
+
+        [section:counting_interface Interface]
+
+            The stable and unstable variations of counting sort do not have the same interface.
+            This is because it was trivial to implement the unstable variation as an in-place algorithm whereas not so for the stable variation.
+
+            Requirements are for the input iterator to be bidirectional and for the output iterator to be random access.
+            The most basic interface requires the input to be of an unsigned integral type, calculates min and max, 
+            and uses a radix equal to the size of the input type.
+            [c++]
+                template <typename Input, typename Output>
+                void stable_counting sort(Input first, Input last, Output result);
+
+            The next interface introduces customization of the conversion to allow user-defined types.
+            [c++]
+                template <typename Input, typename Output, typename Conversion>
+                void stable_counting sort(Input first, Input last, Output result, Conversion conv);
+
+            The next interface adds the option to specify min and max manually.
+            [c++]
+                template <typename Input, typename Output, typename Conversion>
+                void stable_counting sort(Input first, Input last, Output result, Conversion conv, T min, T max);
+                
+            Where T is equal to:
+            [c++]
+                typedef typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type T;
+
+            Finally, the complete interface for total customization includes specifying the radix and digit.
+            [c++]
+                template <typename Input, typename Output, typename Conversion>
+                void stable_counting sort(Input first, Input last, Output result, Conversion conv, T min, T max, unsigned radix, char unsigned digit);
+
+                
+                
+            [section:counting_overview_unstable Unstable]
+
+                When used as an algorithm in its own right, counting sort requires only parameters for input and output.
+
+            [endsect]
+
+            [section:counting_overview_stable Stable]
+
+            [endsect]
+        [endsect]
+        
+        [section:counting_performance Performance]
+            Counting sort performance is proportional to the size of the unsigned integer being sorted.
+            (On x86_64 using gcc) Compared to std::sort it is approximately 15 times faster at sorting `char`, 
+            6 times faster for `short`, 2-4 times faster for `int` and 1.1-2 times faster for `long`.
+        [endsect]
+        
+        [section:counting_complexity Complexity]
+            Let k equal the range of the input (max - min).  If k = O(n), counting sort runs in \theta(n) time.
+        [endsect]
+        
+        [section:counting_ex_safety Exception Safety]
+        [endsect]
+        
+        [section:counting_notes Notes]
+        [endsect]
+        
+        [section:counting_customization Customization Points]
+        [endsect]
+    [endsect]
+
+
+
+
+
+[section:radix LSD radix sort]
+
+[section:radix_overview Overview]
+
+Least-significant digit (LSD) radix sort is a stable sorting algorithm that uses stable counting sort iteratively.
+
+that sorts in Θ(n) time.
+For example it is trivial to project a struct or class with an integral key: use the key to represent the type.
+
+[endsect]
+
+
+[section:radix_interface Interface]
+
+The LSD radix sort interface has a number of optional parameters in a similar fashion to counting sort.
+Its simplest form is for input that requires no conversion.
+
+[c++]
+    template <typename Input, typename Output, typename Conversion>
+    void stable_radix_sort(Input first, Input last, Output result);
+    
+    
+[endsect]
+
+[endsect]
+
+[endsect]
