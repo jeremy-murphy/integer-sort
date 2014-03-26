@@ -19,7 +19,6 @@
 using namespace boost::algorithm;
 
 typedef boost::mpl::list<unsigned char, unsigned short, unsigned int, unsigned long> all_unsigned_types;
-typedef boost::mpl::list<unsigned char, unsigned short> small_unsigned_types;
 
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(empty, T, all_unsigned_types)
@@ -97,7 +96,28 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(one_1000, T, all_unsigned_types)
 }
 
 
-/*
+template <typename T>
+struct random_k
+{
+    std::vector<T> input;
+    std::vector<T> result;
+    
+    random_k(std::vector<T> const &input) : input(input)
+    {
+        result.resize(input.size());
+    }
+    
+    template <typename Container>
+    void operator()(Container)
+    {
+        std::fill(result.begin(), result.end(), 0);
+        Container const c(input.begin(), input.end());
+        stable_counting_sort(c.begin(), c.end(), result.begin());
+        BOOST_CHECK(std::equal(c.begin(), c.end(), result.begin()));
+    }
+};
+
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(random_small_k, T, all_unsigned_types)
 {
     unsigned const k = 255, n = 1000;
@@ -106,18 +126,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(random_small_k, T, all_unsigned_types)
     std::vector<T> tmp_data;
     for(unsigned i = 0; i < n; i++)
         tmp_data.push_back(dist(gen));
-    std::vector<T> tmp_vector(tmp_data.begin(), tmp_data.end());
-    std::list<T> tmp_list(tmp_data.begin(), tmp_data.end());
-    std::deque<T> tmp_deque(tmp_data.begin(), tmp_data.end());
-    std::stable_sort(tmp_data.begin(), tmp_data.end());
-    std::vector<T> result(n);
-    stable_counting_sort(tmp_vector.begin(), tmp_vector.end(), result.begin(), no_op<T>());
-    BOOST_CHECK(std::equal(tmp_data.begin(), tmp_data.end(), tmp_vector.begin()));
-    std::fill_n(result.begin(), n, 0);
-    stable_counting_sort(tmp_list.begin(), tmp_list.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_data.begin(), tmp_data.end(), tmp_list.begin()));
-    std::fill_n(result.begin(), n, 0);
-    stable_counting_sort(tmp_deque.begin(), tmp_deque.end(), result.begin());
-    BOOST_CHECK(std::equal(tmp_data.begin(), tmp_data.end(), tmp_deque.begin()));
+    // TODO: Unfinished.
 }
-*/
