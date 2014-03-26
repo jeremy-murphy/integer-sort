@@ -44,15 +44,15 @@ namespace algorithm {
     template <typename Input, typename Output, typename Conversion>
     BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
         ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+        ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
     stable_radix_sort(Input first, Input last, Output result, Conversion conv,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max,
         unsigned const radix)
     {
         typedef typename std::iterator_traits<Input>::value_type value_type;
-        typedef typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
+        typedef typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
         
         if(first != last)
         {
@@ -100,13 +100,13 @@ namespace algorithm {
     template <typename Input, typename Output, typename Conversion>
     BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
     ((Mutable_RandomAccessIterator<Output>))
-    ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+    ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                            (void))
     stable_radix_sort(Input first, Input last, Output result, Conversion conv,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max)
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max)
     {
-        typedef typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
+        typedef typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type uint_type;
         typedef typename std::iterator_traits<Input>::difference_type difference_type;
         
         difference_type const n = std::distance(first, last);
@@ -120,7 +120,7 @@ namespace algorithm {
     template <typename Input, typename Output, typename Conversion>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
         ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
+        ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
                             (void))
     stable_radix_sort(Input first, Input last, Output result, Conversion conv)
     {
@@ -132,7 +132,7 @@ namespace algorithm {
     template <typename Input, typename Output>
         BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
         ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type)), 
+        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
                            (void))
     stable_radix_sort(Input first, Input last, Output result)
     {

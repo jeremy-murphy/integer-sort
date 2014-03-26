@@ -20,11 +20,8 @@
 
 
 [section:sorting Sorting Algorithms]
-
     [section:counting Counting sort]
-
         [section:counting_overview Overview]
-
             Counting sort is an algorithm to sort unsigned integer types by counting the occurence of each value (instead of using < to compare them).
 
             [
@@ -87,13 +84,11 @@
         [endsect]
         
         [section:counting_complexity Complexity]
-            Let k equal the range of the input (max - min).  If k = O(n), counting sort runs in \theta(n) time.
+            Let k equal the range of the input (max - min).  Counting sort runs in \theta(k) space.  If k = O(n), counting sort runs in \theta(n) time.
         [endsect]
         
         [section:counting_ex_safety Exception Safety]
-        [endsect]
-        
-        [section:counting_notes Notes]
+            Both counting sort algorithms take their parameters by value and have no global state.  
         [endsect]
         
         [section:counting_customization Customization Points]
@@ -101,33 +96,31 @@
     [endsect]
 
 
+    [section:radix LSD radix sort]
+        [section:radix_overview Overview]
+            Least-significant digit (LSD) radix sort is a stable sorting algorithm that uses stable counting sort iteratively.
 
+            that sorts in Θ(n) time.
+            For example it is trivial to project a struct or class with an integral key: use the key to represent the type.
+        [endsect]
 
+        [section:radix_interface Interface]
+            The LSD radix sort interface has a number of optional parameters in a similar fashion to counting sort.
+            Its simplest form is for input that requires no conversion.
 
-[section:radix LSD radix sort]
-
-[section:radix_overview Overview]
-
-Least-significant digit (LSD) radix sort is a stable sorting algorithm that uses stable counting sort iteratively.
-
-that sorts in Θ(n) time.
-For example it is trivial to project a struct or class with an integral key: use the key to represent the type.
-
+            [c++]
+                template <typename Input, typename Output, typename Conversion>
+                void stable_radix_sort(Input first, Input last, Output result);
+            
+        [endsect]
+    [endsect]
 [endsect]
 
+[section:counting_notes Notes]
+    It is typical for algorithms to treat empty input (n = 0) as a special case.  
+    These algorithms also treat n = 1 as a special case of no sorting work to be done.
+    This was largely motivated by the fact that the LSD radix sort algorithm calculates log(n) but does not expect zero, 
+    however it makes logical sense for a sorting algorithm in general.
 
-[section:radix_interface Interface]
-
-The LSD radix sort interface has a number of optional parameters in a similar fashion to counting sort.
-Its simplest form is for input that requires no conversion.
-
-[c++]
-    template <typename Input, typename Output, typename Conversion>
-    void stable_radix_sort(Input first, Input last, Output result);
-    
-    
-[endsect]
-
-[endsect]
-
+    Another special case of k = 1 could be implemented but aside from winning on edge case tests this was deemed, somewhat abitrarily, to not be useful.
 [endsect]
