@@ -14,14 +14,13 @@
 #include <numeric>
 #include <cassert>
 #include <limits>
-#include <functional>
+// #include <functional>
 #include <vector>
 
 #include <boost/concept_check.hpp>
 #include <boost/concept/requires.hpp>
 #include <boost/integer.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/unordered_map.hpp>
+// #include <boost/static_assert.hpp>
 #include <boost/utility/result_of.hpp>
 #include <boost/algorithm/minmax_element.hpp>
 #include <boost/scoped_array.hpp>
@@ -71,13 +70,14 @@ namespace algorithm {
     * \param d Which digit to consider.
     */
     template <typename Input, typename Output, typename Conversion>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-        ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
-                        (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((BidirectionalIterator<Input>))
+            ((Mutable_RandomAccessIterator<Output>))
+            ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>))
+            , (void))
     stable_counting_sort(Input first, Input last, Output result, Conversion conv,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max,
         unsigned const radix, unsigned char const digit)
     {
         typedef std::reverse_iterator<Input> ReverseIterator;
@@ -113,24 +113,26 @@ namespace algorithm {
 
     
     template <typename Input, typename Output, typename Conversion>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-        ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
-                           (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((BidirectionalIterator<Input>))
+            ((Mutable_RandomAccessIterator<Output>))
+            ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>))
+        , (void))
     stable_counting_sort(Input first, Input last, Output result, Conversion conv,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
-        typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max)
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const min,
+        typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type const max)
     {
-        unsigned const radix(sizeof(typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8);
+        unsigned const radix(sizeof(typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type) * 8);
         return stable_counting_sort(first, last, result, conv, min, max, radix, 0);
     }
     
     
     template <typename Input, typename Output, typename Conversion>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-        ((Mutable_RandomAccessIterator<Output>))
-        ((UnsignedInteger<typename result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>)), 
-                           (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((BidirectionalIterator<Input>))
+            ((Mutable_RandomAccessIterator<Output>))
+            ((UnsignedInteger<typename tr1_result_of<Conversion(typename std::iterator_traits<Input>::value_type)>::type>))
+            , (void))
     stable_counting_sort(Input first, Input last, Output result, Conversion conv)
     {
         if(first != last)
@@ -142,9 +144,10 @@ namespace algorithm {
     
     
     template <typename Input, typename Output>
-        BOOST_CONCEPT_REQUIRES(((BidirectionalIterator<Input>))
-        ((Mutable_RandomAccessIterator<Output>)),
-                           (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((BidirectionalIterator<Input>))
+            ((Mutable_RandomAccessIterator<Output>))
+            , (void))
     stable_counting_sort(Input first, Input last, Output result)
     {
         return stable_counting_sort(first, last, result, no_op<typename std::iterator_traits<Input>::value_type>());
@@ -163,9 +166,10 @@ namespace algorithm {
      * It is recommended for use on data where max - min is relatively small.
      */
     template <typename Input>
-        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
-        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
-        (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((Mutable_ForwardIterator<Input>))
+            ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>))
+            , (void))
     counting_sort(Input first, Input last,
                 typename std::iterator_traits<Input>::value_type const min,
                 typename std::iterator_traits<Input>::value_type const max)
@@ -202,9 +206,10 @@ namespace algorithm {
      * \param last Input iterator that points past the last element of the unsorted data.
      */
     template <typename Input>
-        BOOST_CONCEPT_REQUIRES(((Mutable_ForwardIterator<Input>))
-        ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>)), 
-                           (void))
+        BOOST_CONCEPT_REQUIRES(
+            ((Mutable_ForwardIterator<Input>))
+            ((UnsignedInteger<typename std::iterator_traits<Input>::value_type>))
+            , (void))
     counting_sort(Input first, Input last)
     {
         if(first != last)
