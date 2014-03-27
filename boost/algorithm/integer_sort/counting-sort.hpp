@@ -39,11 +39,11 @@ namespace algorithm {
     
     
     template <typename T>
-    struct no_op
+    struct identity
     {
         typedef T result_type;
         
-        no_op() {}
+        identity() {}
 
         T const &operator()(T const &x) const
         {
@@ -150,7 +150,7 @@ namespace algorithm {
             , (void))
     stable_counting_sort(Input first, Input last, Output result)
     {
-        return stable_counting_sort(first, last, result, no_op<typename std::iterator_traits<Input>::value_type>());
+        return stable_counting_sort(first, last, result, identity<typename std::iterator_traits<Input>::value_type>());
     }
     
     
