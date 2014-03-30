@@ -29,7 +29,7 @@ namespace boost {
 namespace algorithm {
     /**
      * \fn stable_radix_sort
-     * \brief Stable LSD radix-sort that uses counting-sort.
+     * \brief Stable LSD radix sort.
      * 
      * \c Input Bidirectional input iterator.
      * \c Output Random access output iterator.
@@ -58,7 +58,9 @@ namespace algorithm {
         {
             assert(max >= min);
             
-            if(++Input(first) == last)
+            Input next(first);
+            ++next;
+            if(next == last)
                 *result++ = *first;
             else
             {

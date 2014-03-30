@@ -1,25 +1,15 @@
-[/
- / Copyright (C) 2014 Jeremy W. Murphy
- / 
- / Distributed under the Boost Software License, Version 1.0. (See accompanying
- / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
- /]
- 
-[library Boost.Algorithm
-    [quickbook 1.4]
-    [authors [Murphy, Jeremy W.]]
-    [copyright 2014 Jeremy W. Murphy]
-    [/id ?]
-    [/dirname ?]
-    [license
-        Distributed under the Boost Software License, Version 1.0.
-        (See accompanying file LICENSE_1_0.txt or copy at
-        [@http://www.boost.org/LICENSE_1_0.txt])
+[/ QuickBook Document version 1.5 ]
+
+[section:integer_sort Integer Sorting Algorithms]
+
+    [/license
+        Copyright (C) 2014 Jeremy W. Murphy
+        
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
     ]
-]
+ 
 
-
-[section:sorting Sorting Algorithms]
     [section:counting Counting sort]
         [section:counting_overview Overview]
             Counting sort is an algorithm to sort unsigned integer types by counting the occurence of each value (instead of using < to compare them).
@@ -63,7 +53,6 @@
             [c++]
                 template <typename Input, typename Output, typename Conversion>
                 void stable_counting sort(Input first, Input last, Output result, Conversion conv, T min, T max, unsigned radix, char unsigned digit);
-
                 
                 
             [section:counting_overview_unstable Unstable]
@@ -129,16 +118,17 @@
             When digits equals two, one temporary buffer is required, and for greater than two digits, two temporary buffers are required.
             The radix and thus number of digits is calculated as a balance of time complexity and performance.
         [endsect]
-        
+    [endsect]
+
+    [section:integer_customization Customization]
         
     [endsect]
-[endsect]
+    
+    [section:integer_notes Notes]
+        It is typical for algorithms to treat empty input (n = 0) as a special case.  
+        These algorithms also treat n = 1 as a special case of no sorting work to be done.
+        This was largely motivated by the fact that the LSD radix sort algorithm calculates log(n) but does not expect zero, 
+        however it makes logical sense for a sorting algorithm in general.
+    [endsect]
 
-[section:counting_notes Notes]
-    It is typical for algorithms to treat empty input (n = 0) as a special case.  
-    These algorithms also treat n = 1 as a special case of no sorting work to be done.
-    This was largely motivated by the fact that the LSD radix sort algorithm calculates log(n) but does not expect zero, 
-    however it makes logical sense for a sorting algorithm in general.
-
-    Another special case of k = 1 could be implemented but aside from winning on edge case tests this was deemed, somewhat abitrarily, to not be useful.
 [endsect]
